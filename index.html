@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v3.5.4</title>
+<title>Emoji Dodge – v3.6.0</title>
 <meta name="theme-color" content="#0b0f1a" />
 <style>
   :root{
@@ -17,13 +17,14 @@
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%, #1a2248, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial;overscroll-behavior:none}
   .wrap{display:flex;flex-direction:column;min-height:100dvh;padding:calc(var(--safe-t)) calc(var(--safe-r)) calc(var(--safe-b)) calc(var(--safe-l))}
-  main{position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column;gap:8px}
+  main{position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column;gap:10px}
   .stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center}
-  canvas{position:absolute;display:block;border-radius:18px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.5);background: radial-gradient(800px 500px at 50% -100px, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); touch-action:none; z-index:1}
+  canvas{position:absolute;display:block;border-radius:18px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.5);background: transparent; touch-action:none; z-index:1}
   .hudBox{position:absolute;pointer-events:none; z-index:2}
   .score{position:absolute;left:50%;transform:translateX(-50%);top:8px;font-weight:900;font-size: clamp(24px, 6vw, 44px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
   .bank{position:absolute;right:14px;top:10px;font-weight:800;opacity:.95;font-size: clamp(14px, 3.2vw, 20px)}
-  .modeIcon{position:absolute;left:14px;top:10px;font-size: clamp(22px, 4.5vw, 34px)}
+  .leftHUD{position:absolute;left:14px;top:10px;font-weight:800;opacity:.95;font-size: clamp(14px, 3.2vw, 20px);display:flex;align-items:center;gap:6px}
+  .modeIcon{font-size: clamp(20px, 4.2vw, 28px)}
   .morphBadge{position:absolute;left:50%;top:48px;transform:translateX(-50%);font-weight:900;background:var(--glass);border:1px solid var(--glassBorder);padding:6px 10px;border-radius:999px;display:none}
   .morphBadge.show{display:block}
   .event{position:absolute;left:50%;top:18%;transform:translateX(-50%);font-weight:900;font-size: clamp(20px,3.6vw,32px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
@@ -39,20 +40,24 @@
   .modeBtn[data-active="true"]{outline:3px solid #ffd166}
   .alpha{margin-top:6px;font-weight:800;color:#ffd166;display:inline-flex;align-items:center;gap:8px}
   .alpha::before{content:"🛠"}
-  .controls{position:relative;display:flex;justify-content:space-between;align-items:center;gap:16px;height:120px}
-  .stick{width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none;opacity:.6}
-  .stick::after{content:"";position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
+  /* Mobile control bar — refined */
+  .controls{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;height:128px;padding:0 8px 4px}
+  .controls .left, .controls .right{display:flex;align-items:end;gap:12px}
+  .stick{width:112px;height:112px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none;opacity:.7;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+  .stick::after{content:"";position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.28)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
-  .action{width:120px;height:120px;border-radius:22px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:manipulation; transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease;}
-  .action .big{font-size:38px}
+  .action{width:112px;height:112px;border-radius:26px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:manipulation; box-shadow:0 10px 24px rgba(0,0,0,.35); transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease;}
+  .action .big{font-size:36px}
   .action:active{ transform: translateY(1px) scale(.99) }
-  .action.disabled{opacity:.45;filter:grayscale(0.2); box-shadow:none}
   .action.ready{ border-color: rgba(255, 209, 102, 0.9); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5); animation: pulseGlow 1.2s ease-out infinite; }
   @keyframes pulseGlow{ 0%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5);} 70%{ box-shadow: 0 0 0 16px rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5);} 100%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5);} }
-  .mute{border:none;border-radius:999px;padding:10px 12px;background:var(--glass);border:1px solid var(--glassBorder);color:var(--text);font-weight:800;pointer-events:auto}
+  .mute{border:none;border-radius:999px;padding:10px 12px;background:var(--glass);border:1px solid var(--glassBorder);color:var(--text);font-weight:800;pointer-events:auto; width:48px; height:48px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,.3)}
   body.ui-locked .controls{ opacity:0; pointer-events:none; }
+  /* Desktop: hide mobile controls, larger canvas */
+  @media (hover:hover) and (pointer:fine){ .controls{display:none} }
+  /* Intro */
   .intro{position:absolute;inset:0;display:none;place-items:center;text-align:center;z-index:5;background:radial-gradient(1200px 700px at 70% -10%, #1a2248, #080b14 60%);}
-  .intro.show{display:grid; animation: fadeIn .6s ease forwards}
+  .intro.show{display:grid; animation: fadeIn .4s ease forwards}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   .intro .logo{font-size: clamp(28px, 7vw, 54px);font-weight:900}
   .intro .alpha{margin-top:10px}
@@ -63,9 +68,9 @@
 <div class="wrap">
   <main>
     <div class="stage" id="stage">
-      <canvas id="cv" width="900" height="900"></canvas>
+      <canvas id="cv" width="1024" height="1024"></canvas>
       <div class="hudBox" id="hudBox">
-        <div class="modeIcon" id="modeIcon">⭐</div>
+        <div class="leftHUD"><span class="modeIcon" id="modeIcon">⭐</span><span id="leftCount">—</span></div>
         <div class="score" id="scoreHUD">0</div>
         <div class="bank" id="bankHUD">—</div>
         <div class="morphBadge" id="morphBadge">🦄 Unicorn active</div>
@@ -75,7 +80,7 @@
       <div class="intro" id="introOv">
         <div class="card">
           <div class="logo">EMOJI DODGE</div>
-          <div class="alpha">ALPHA BUILD v0.5 – In development</div>
+          <div class="alpha">ALPHA BUILD v0.6 – In development</div>
           <div class="hint">Tap to skip</div>
         </div>
       </div>
@@ -88,7 +93,7 @@
             <button class="btn modeBtn sec" id="btnDoge">🚀 Doge World</button>
           </div>
           <div class="row">
-            <button class="btn" id="startBtn" disabled style="opacity:.6">▶ Start</button>
+            <button class="btn" id="startBtn">▶ Start</button>
             <button class="btn sec" id="muteBtnMenu">🔊 Sound</button>
           </div>
           <div class="alpha" style="margin-top:14px">Test build – feedback welcome!</div>
@@ -107,11 +112,12 @@
       </div>
     </div>
 
+    <!-- Refined controls bar -->
     <div class="controls">
-      <div style="display:flex;gap:12px;align-items:center">
+      <div class="left">
         <div class="stick" id="stick"></div>
       </div>
-      <div style="display:flex;gap:12px;align-items:center">
+      <div class="right">
         <button class="action" id="actionBtn" aria-label="Action"><div class="big" id="actionIcon">💣</div></button>
         <button class="mute" id="muteBtn">🔊</button>
       </div>
@@ -148,8 +154,6 @@ function playSfx(src, vol=0.95){
   a.currentTime=0; a.volume=vol;
   a.play().catch(()=>{});
 }
-
-// Voices
 function playRocketPickupVoice(){ playSfx('assets/to_the_moon.mp3',0.95); }
 function playCoinVoice(){ const pick=Math.random()<0.5 ? 'assets/hodl.mp3' : 'assets/buy_the_dip.mp3'; playSfx(pick,0.9); }
 function playRocketWhoosh(){ playSfx('assets/rocket_whoosh.mp3',0.9); }
@@ -159,6 +163,7 @@ const stage=document.getElementById('stage'), cv=document.getElementById('cv'), 
 const stick=document.getElementById('stick'), actionBtn=document.getElementById('actionBtn'), actionIcon=document.getElementById('actionIcon');
 const muteBtn=document.getElementById('muteBtn');
 const modeIcon=document.getElementById('modeIcon');
+const leftCount=document.getElementById('leftCount');
 const introOv=document.getElementById('introOv');
 const startOv=document.getElementById('startOv');
 const muteBtnMenu=document.getElementById('muteBtnMenu');
@@ -172,8 +177,10 @@ function layout(){
   const vw = window.visualViewport ? visualViewport.width : innerWidth;
   const vh = window.visualViewport ? visualViewport.height : innerHeight;
   const pad = 12;
-  const controlsH = document.body.classList.contains('ui-locked') ? 0 : (120 + 8);
-  const side = Math.max(320, Math.min(Math.min(vw, vh - controlsH) - pad*2, 1100));
+  const isDesktop = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const controlsH = (isDesktop || document.body.classList.contains('ui-locked')) ? 0 : (128 + 10);
+  const maxSide = isDesktop ? Math.min(1400, Math.min(vw, vh) - pad*2) : Math.min(1100, Math.min(vw, vh - controlsH) - pad*2);
+  const side = Math.max(320, maxSide);
   const left = Math.round((vw - side)/2);
   const top  = Math.round((vh - controlsH - side)/2);
   position(cv,left,top,side,side);
@@ -186,7 +193,7 @@ addEventListener('resize',layout); if (window.visualViewport) visualViewport.add
 
 // ===== HUD & State
 const HUD={ score:scoreHUD, bank:bankHUD, event:eventHUD, start:startOv, over:overOv, finalScore:finalScore, finalBest:finalBest };
-const STORAGE_KEY='emoji_dodge_v354_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
+const STORAGE_KEY='emoji_dodge_v360_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
 
 const THEMES={ classicHaz:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'], fun:['👻','💀','🕷️','🕸️','🍔','🍕','🌮','🍟','🏀','🎯','🎱'] };
 
@@ -206,9 +213,14 @@ const ROCKET_TIME=2.0;
 let dogeImg=null, coinImg=null;
 const playfieldMargin=24;
 
-// Morph (Classic only)
-let classicStars=0, morph='base';
-let unicornTimer=0;
+// Background/parallax settings
+const prefersReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let parallaxOnDesktop = !prefersReduce;
+let bgPulse = 0;
+
+// Counters
+let coinTotal=0; // Doge World coins
+let classicStars=0, morph='base', unicornTimer=0;
 
 // Clamp
 function clampPlayer(){ const minX=playfieldMargin+player.r, maxX=cv.width-playfieldMargin-player.r, minY=playfieldMargin+player.r, maxY=cv.height-playfieldMargin-player.r; if(player.x<minX) player.x=minX; if(player.x>maxX) player.x=maxX; if(player.y<minY) player.y=minY; if(player.y>maxY) player.y=maxY; }
@@ -225,7 +237,7 @@ menuBtn.addEventListener('click', e=>{ e.preventDefault(); HUD.over.classList.re
 function showIntro(){
   lockUI();
   introOv.classList.add('show');
-  setTimeout(()=>{ if(introOv.classList.contains('show')) { introOv.classList.remove('show'); startMenu(); } }, 2200);
+  setTimeout(()=>{ if(introOv.classList.contains('show')) { introOv.classList.remove('show'); startMenu(); } }, 1400);
 }
 introOv.addEventListener('click', ()=>{ introOv.classList.remove('show'); startMenu(); }, {passive:true});
 
@@ -240,28 +252,36 @@ function selectMode(m){
   btnDoge.classList.toggle('sec', !(m==='doge'));
   startBtn.disabled=false; startBtn.style.opacity='1';
 }
-startBtn.addEventListener('click', async e=>{ e.preventDefault(); if(!themeSel) return; ensureAudio(); await preloadAssets(); start(); }, {passive:false});
+startBtn.addEventListener('click', async e=>{ e.preventDefault(); if(!themeSel) themeSel='classic'; ensureAudio(); await preloadAssets(); start(); }, {passive:false});
 
 function startMenu(){
+  // default to Classic selected so Start is enabled
+  selectMode('classic');
   lockUI();
   HUD.start.classList.add('show'); layout();
 }
 
+function setLeftHUD(){
+  if(themeSel==='doge'){ modeIcon.textContent='🪙'; leftCount.textContent = String(coinTotal); }
+  else { modeIcon.textContent='⭐'; leftCount.textContent = ''; }
+}
 function setModeIcon(){
-  // Doge shows COIN on left, rocket bank on right
-  modeIcon.textContent = themeSel==='doge' ? '🪙' : '⭐';
+  setLeftHUD();
   actionIcon.textContent = themeSel==='doge' ? '🚀' : '💣';
 }
 
 // Preload
-async function preloadAssets(){ const d1=await loadImage('doge','assets/doge.png'); if(d1) dogeImg=images['doge']; const d2=await loadImage('coin','assets/dogecoin.png'); if(d2) coinImg=images['coin']; }
+async function preloadAssets(){ 
+  const d1=await loadImage('doge','assets/doge.png'); if(d1) dogeImg=images['doge']; 
+  const d2=await loadImage('coin','assets/dogecoin.png'); if(d2) coinImg=images['coin']; 
+}
 
-// Joystick (simple baseline)
+// Joystick baseline (refined feel)
 let stickActive=false, stickStart=null, stickVec={x:0,y:0};
 ['touchstart','touchmove','touchend','touchcancel'].forEach(tp=>stick.addEventListener(tp,ev=>{
-  if(tp==='touchstart'){ stickActive=true; const r=stick.getBoundingClientRect(); const t=ev.touches[0]; stickStart={x:t.clientX-(r.left+r.width/2), y:t.clientY-(r.top+r.height/2)}; stick.style.opacity=0.95; }
-  else if(tp==='touchmove'){ const r=stick.getBoundingClientRect(); const t=ev.touches[0]; const dx=t.clientX-(r.left+r.width/2)-stickStart.x; const dy=t.clientY-(r.top+r.height/2)-stickStart.y; const m=Math.hypot(dx,dy); const lim=r.width*0.45; const cl=Math.min(lim,m); const nx=m?dx/m:0, ny=m?dy/m:0; stickVec={x:(cl/lim)*nx,y:(cl/lim)*ny}; }
-  else { stickActive=false; stickVec={x:0,y:0}; stick.style.opacity=0.6; }
+  if(tp==='touchstart'){ stickActive=true; const r=stick.getBoundingClientRect(); const t=ev.touches[0]; stickStart={x:t.clientX-(r.left+r.width/2), y:t.clientY-(r.top+r.height/2)}; stick.style.opacity=0.9; }
+  else if(tp==='touchmove'){ const r=stick.getBoundingClientRect(); const t=ev.touches[0]; const dx=t.clientX-(r.left+r.width/2)-stickStart.x; const dy=t.clientY-(r.top+r.height/2)-stickStart.y; const m=Math.hypot(dx,dy); const lim=r.width*0.46; const cl=Math.min(lim,m); const nx=m?dx/m:0, ny=m?dy/m:0; stickVec={x:(cl/lim)*nx,y:(cl/lim)*ny}; }
+  else { stickActive=false; stickVec={x:0,y:0}; stick.style.opacity=0.7; }
   ev.preventDefault();
 },{passive:false}));
 
@@ -271,15 +291,14 @@ actionBtn.addEventListener('click', e=>{ e.preventDefault(); doAction(); }, {pas
 function start(){
   unlockUI();
   hazards.length=0; stars.length=0; bombParts.length=0; coins.length=0; rockets.length=0; particles.length=0; sweeps.length=0;
-  score=0; t=0; last=0;
+  score=0; t=0; last=0; coinTotal=0;
   player.x=cv.width/2; player.y=cv.height*0.78; player.emoji=(themeSel==='doge'?'🐶':'😀');
   bombCount=0; bombArmed=false; rocketCount=0; rocketArmed=false; rocketActive=0; shield=0; invul=0; spawnGrace=0;
   classicStars=0; morph='base'; unicornTimer=0; morphBadge.classList.remove('show');
   running=true; HUD.start.classList.remove('show'); HUD.over.classList.remove('show');
-  setModeIcon(); updateHUDTop();
+  setModeIcon(); updateHUDTop(); setLeftHUD();
   tryPlayMusic(); requestAnimationFrame(loop);
 }
-function startFirstTime(){ layout(); showIntro(); }
 
 function updateHUDTop(){ HUD.bank.textContent = themeSel==='classic' ? ('💣 '+bombCount+'/3') : ('🚀 '+rocketCount+'/3'); }
 
@@ -323,6 +342,7 @@ function loop(now){
   if(!running) return; requestAnimationFrame(loop);
   if(!last) last=now; dt=(now-last)/1000; last=now;
 
+  // timers (doge flight/shield)
   if(themeSel==='doge'){
     const topStop=24+80+player.r;
     if(rocketActive>0){
@@ -337,6 +357,7 @@ function loop(now){
     if(spawnGrace>0) spawnGrace=Math.max(0, spawnGrace-dt);
   }
 
+  // pacing
   let hazardInt=Math.max(0.22, 0.85 - score*0.0022);
   if(spawnGrace>0) hazardInt*=1.7;
   const starInt=Math.max(0.68, 1.45 - score*0.0015);
@@ -351,6 +372,7 @@ function loop(now){
     if(themeSel==='doge' && Math.random()<0.55) spawnRocket();
   }
 
+  // input (normal)
   if(rocketActive<=0){
     let ix=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0);
     let iy=(keys.ArrowDown||keys.KeyS?1:0)-(keys.ArrowUp||keys.KeyW?1:0);
@@ -362,6 +384,7 @@ function loop(now){
   }
   clampPlayer();
 
+  // hazards
   for(let i=hazards.length-1;i>=0;i--){
     const h=hazards[i];
     h.y += (150+Math.min(280,score*0.6))*dt; h.x += h.vx*dt; h.rot += h.spin*dt;
@@ -377,6 +400,7 @@ function loop(now){
     if(h.y-h.r>cv.height+60) hazards.splice(i,1);
   }
 
+  // stars
   for(let i=stars.length-1;i>=0;i--){
     const g=stars[i]; g.y += g.vy*dt; g.pulse+=dt*3;
     if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){
@@ -389,6 +413,7 @@ function loop(now){
     if(g.y-g.r>cv.height+40) stars.splice(i,1);
   }
 
+  // bomb parts
   for(let i=bombParts.length-1;i>=0;i--){
     const b=bombParts[i]; b.y += b.vy*dt; b.pulse+=dt*3;
     if((player.x-b.x)**2+(player.y-b.y)**2 <= (player.r+b.r)**2){
@@ -399,14 +424,16 @@ function loop(now){
     if(b.y-b.r>cv.height+40) bombParts.splice(i,1);
   }
 
+  // coins
   for(let i=coins.length-1;i>=0;i--){
     const c=coins[i]; c.y += c.vy*dt; c.pulse+=dt*3;
     if((player.x-c.x)**2+(player.y-c.y)**2 <= (player.r+c.r)**2){
-      score+=30; addParticles(c.x,c.y,20,'#ffe28a'); coins.splice(i,1); playCoinVoice(); continue;
+      score+=30; coinTotal+=1; addParticles(c.x,c.y,20,'#ffe28a'); coins.splice(i,1); playCoinVoice(); setLeftHUD(); continue;
     }
     if(c.y-c.r>cv.height+40) coins.splice(i,1);
   }
 
+  // rockets (pickups)
   for(let i=rockets.length-1;i>=0;i--){
     const m=rockets[i]; m.y += m.vy*dt; m.pulse+=dt*3;
     if((player.x-m.x)**2+(player.y-m.y)**2 <= (player.r+m.r)**2){
@@ -417,6 +444,7 @@ function loop(now){
     if(m.y-m.r>cv.height+40) rockets.splice(i,1);
   }
 
+  // unicorn passive (classic)
   if(themeSel==='classic' && morph==='unicorn'){
     unicornTimer -= dt;
     if(unicornTimer<=0){
@@ -426,6 +454,7 @@ function loop(now){
     }
   }
 
+  // update sweeps + clear hazards
   for(let i=sweeps.length-1;i>=0;i--){
     const s=sweeps[i]; s.t+=dt; s.x += s.speed*dt; if(s.x>cv.width+200 || s.t>s.life){ sweeps.splice(i,1); continue; }
     for(let j=hazards.length-1;j>=0;j--){
@@ -436,8 +465,10 @@ function loop(now){
     }
   }
 
+  // particles
   for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; } p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=380*dt; }
 
+  // Ready pulse guard
   const readyClassic = themeSel==='classic' && bombArmed;
   const readyDoge = themeSel==='doge' && rocketArmed;
   if(readyClassic && !lastReadyClassic){ pingReady(); } 
@@ -449,22 +480,45 @@ function loop(now){
   draw();
 }
 
+// ===== Draw
 function draw(){
   const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
-  ctx.save(); ctx.globalAlpha = 0.06; ctx.font = `${Math.floor(cv.width*0.7)}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  const mark = themeSel==='doge' ? '🚀' : '⭐'; ctx.fillText(mark, cv.width/2, cv.height/2); ctx.restore();
 
+  // --- DOGE BACKGROUND (mobile: still + low alpha, desktop: light parallax)
+  const isDesktop = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const parallax = isDesktop && parallaxOnDesktop;
+  const alpha = themeSel==='doge' ? 0.12 : 0.06;
+  ctx.save(); ctx.globalAlpha = alpha;
+  if(images['doge']){
+    const s = Math.max(cv.width, cv.height) * 0.9;
+    let offsetX = 0, offsetY = 0;
+    if(parallax){
+      offsetX = (player.x - cv.width/2) * 0.05;
+      offsetY = (player.y - cv.height/2) * 0.03;
+    }
+    ctx.drawImage(images['doge'], cv.width/2 - s/2 + offsetX, cv.height/2 - s/2 + offsetY, s, s);
+  }else{
+    // fallback emoji watermark
+    ctx.font = `${Math.floor(cv.width*0.7)}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const mark = themeSel==='doge' ? '🐶' : '⭐'; ctx.fillText(mark, cv.width/2, cv.height/2);
+  }
+  ctx.restore();
+
+  // grid (very subtle)
   ctx.save(); ctx.globalAlpha=0.05; ctx.strokeStyle='#cbd5ff';
   const grid=90; ctx.beginPath();
   for(let gx=24;gx<cv.width-24;gx+=grid){ ctx.moveTo(gx,24); ctx.lineTo(gx,cv.height-24); }
   for(let gy=24;gy<cv.height-24;gy+=grid){ ctx.moveTo(24,gy); ctx.lineTo(cv.width-24,gy); }
   ctx.stroke(); ctx.restore();
 
+  // shield/invul
   if(shield>0){ const a=Math.max(0.15, 0.25*Math.sin(Date.now()/180)+0.3); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle='#ffd166'; ctx.lineWidth=12; ctx.beginPath(); ctx.arc(player.x,player.y, player.r+18, 0, Math.PI*2); ctx.stroke(); ctx.restore(); }
   if(invul>0){ ctx.save(); ctx.globalAlpha=0.22; ctx.strokeStyle='#8dfcff'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(player.x,player.y, player.r+28, 0, Math.PI*2); ctx.stroke(); ctx.restore(); }
 
+  // particles
   particles.forEach(p=>{ ctx.save(); ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
 
+  // sweeps (rainbow)
   sweeps.forEach(s=>{
     const g=ctx.createLinearGradient(s.x-s.w/2, s.y, s.x+s.w/2, s.y);
     g.addColorStop(0,'#ff2d55'); g.addColorStop(0.2,'#ffcc00'); g.addColorStop(0.4,'#34c759'); g.addColorStop(0.6,'#5ac8fa'); g.addColorStop(0.8,'#5856d6'); g.addColorStop(1,'#ff2d55');
@@ -473,6 +527,7 @@ function draw(){
     ctx.restore();
   });
 
+  // stars
   stars.forEach(g=>{
     const pulse=0.35+0.18*Math.sin(g.pulse*2);
     ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffd166'; ctx.lineWidth=10;
@@ -480,6 +535,7 @@ function draw(){
     drawEmoji('⭐', g.x,g.y, g.r*2+4*Math.sin(g.pulse), 0, '#ffd166');
   });
 
+  // bomb parts
   bombParts.forEach(b=>{
     const pulse=0.35+0.18*Math.sin(b.pulse*2);
     ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffb3b3'; ctx.lineWidth=10;
@@ -487,6 +543,7 @@ function draw(){
     drawEmoji('💣', b.x,b.y, b.r*2+2*Math.sin(b.pulse), 0, '#ffb3b3');
   });
 
+  // coins
   coins.forEach(cn=>{
     const pulse=0.35+0.18*Math.sin(cn.pulse*2);
     ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffe28a'; ctx.lineWidth=10;
@@ -495,6 +552,7 @@ function draw(){
     else { drawEmoji('🪙', cn.x,cn.y, cn.r*2+2*Math.sin(cn.pulse), 0, '#ffe28a'); }
   });
 
+  // rockets
   rockets.forEach(m=>{
     const pulse=0.35+0.18*Math.sin(m.pulse*2);
     ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#cfe8ff'; ctx.lineWidth=10;
@@ -502,12 +560,14 @@ function draw(){
     drawEmoji('🚀', m.x,m.y, m.r*2+2*Math.sin(m.pulse), 0, '#cfe8ff');
   });
 
+  // hazards
   hazards.forEach(h=>{
     ctx.save(); ctx.globalAlpha=0.38; ctx.strokeStyle='#ff6b6b'; ctx.lineWidth=10;
     ctx.beginPath(); ctx.arc(h.x,h.y,h.r+12,0,Math.PI*2); ctx.stroke(); ctx.restore();
     drawEmoji(h.emoji, h.x,h.y, h.r*2, h.rot, '#ff6b6b');
   });
 
+  // player
   if(themeSel==='doge' && images['doge']){ const s=player.r*2; ctx.save(); ctx.translate(player.x, player.y); ctx.drawImage(images['doge'], -s/2, -s/2, s, s); ctx.restore(); }
   else drawEmoji(player.emoji, player.x, player.y, player.r*2, 0, '#f1f5ff');
 }
