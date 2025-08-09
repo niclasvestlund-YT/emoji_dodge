@@ -3,44 +3,35 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v2.5 Square Arena</title>
+<title>Emoji Dodge – v2.6 Mobile Layout Pro</title>
 <meta name="theme-color" content="#0b0f1a" />
-<meta property="og:title" content="Emoji Dodge – v2.5" />
-<meta property="og:description" content="Meme-UI, kaos-events, haptics och kvadratisk arena som känns likadan i stående och liggande." />
-<meta property="og:type" content="website" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%98%8E%3C/text%3E%3C/svg%3E">
 <style>
   :root{ --bg:#080b14; --text:#f1f5ff; --muted:#9aa5c3; --gold:#ffd166; --red:#ff6b6b; }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%, #182046, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial}
+  html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%, #182046, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial;overscroll-behavior:none}
   .wrap{display:flex;flex-direction:column;min-height:100dvh}
-  main{position:relative;flex:1;display:grid;place-items:center;overflow:hidden;padding:8px}
-  .stage{position:relative;display:grid;place-items:center;max-width:100%;max-height:100%}
-  /* Square canvas: logical 900x900, scaled with CSS to a square that fits viewport */
-  canvas{display:block;border-radius:18px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.5);background: radial-gradient(800px 500px at 50% -100px, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); touch-action:none}
-  .hud{position:absolute;inset:0;pointer-events:none}
-  .score{position:absolute;left:calc(14px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));font-weight:900;font-size: clamp(26px,5vw,42px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
-  .best{position:absolute;left:calc(14px + env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));font-weight:800;opacity:.9;font-size: clamp(14px,2.6vw,18px)}
-  .modePill{
-    position:absolute;right:calc(12px + env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));
-    font-weight:800;font-size: clamp(14px,2.6vw,18px);
-    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
-    padding:10px 14px;border-radius:999px;pointer-events:auto;user-select:none;touch-action:manipulation;
-    display:flex;align-items:center;gap:8px;backdrop-filter: blur(4px);
-  }
+  main{position:relative;flex:1;overflow:hidden}
+  /* Stage fills viewport; we absolutely position canvas, hud and joystick via JS for perfect layout */
+  .stage{position:relative;width:100%;height:100%}
+  canvas{position:absolute;display:block;border-radius:18px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.5);background: radial-gradient(800px 500px at 50% -100px, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); touch-action:none}
+  .hudBox{position:absolute;pointer-events:none}
+  .score{position:absolute;left:14px;top:10px;font-weight:900;font-size: clamp(22px, 4.5vw, 36px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
+  .best{position:absolute;left:14px;top:48px;font-weight:800;opacity:.9;font-size: clamp(12px, 2.6vw, 16px)}
+  .modePill{position:absolute;right:12px;top:12px;font-weight:800;font-size: clamp(13px,2.6vw,18px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:9px 12px;border-radius:999px;pointer-events:auto;user-select:none;touch-action:manipulation;display:flex;align-items:center;gap:8px;backdrop-filter: blur(4px)}
   .modePill:active{transform:scale(.98)}
-  .event{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-weight:900;font-size: clamp(22px,3.6vw,36px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
-  .overlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(8,11,20,.72);backdrop-filter: blur(2px); pointer-events:auto}
-  .card{max-width:min(760px,92vw);padding:22px;border-radius:18px;background:linear-gradient(180deg, rgba(22,28,46,.88), rgba(14,18,34,.86));border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center}
-  .title{margin:0 0 6px;font-size: clamp(26px, 4.2vw, 46px);font-weight:900}
-  .sub{margin:0 0 14px;color:var(--muted)}
+  .event{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-weight:900;font-size: clamp(20px,3.6vw,32px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+  .overlay{position:absolute;display:none;place-items:center;background:rgba(8,11,20,.72);backdrop-filter: blur(2px); pointer-events:auto;border-radius:18px}
+  .overlay.show{display:grid}
+  .card{max-width:min(720px,92vw);padding:20px;border-radius:18px;background:linear-gradient(180deg, rgba(22,28,46,.88), rgba(14,18,34,.86));border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center}
+  .title{margin:0 0 6px;font-size: clamp(24px, 4.2vw, 44px);font-weight:900}
+  .sub{margin:0 0 12px;color:var(--muted)}
   .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-  .btn{pointer-events:auto;border:none;border-radius:12px;padding:14px 18px;font-weight:800;cursor:pointer;color:#071022;background:var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:18px}
+  .btn{pointer-events:auto;border:none;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;color:#071022;background:var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:16px}
   .btn.sec{background:#1c2546;color:var(--text);border:1px solid rgba(255,255,255,.12)}
-  .select{appearance:none;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 12px}
-  .tiny{font-size:12px;color:var(--muted)}
-  .stick{position:absolute;left:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:124px;height:124px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none}
-  .stick::after{content:"";position:absolute;left:50%;top:50%;width:64px;height:64px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
+  .select{appearance:none;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 10px}
+  /* Joystick lives OUTSIDE the canvas; JS positions it. */
+  .stick{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none}
+  .stick::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
   .shake{animation:shake .18s ease-in-out}
   @keyframes shake{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(2px,0,0)}50%{transform:translate3d(-2px,0,0)}75%{transform:translate3d(2px,0,0)}100%{transform:translate3d(0,0,0)}}
@@ -50,18 +41,18 @@
 <div class="wrap">
   <main>
     <div class="stage" id="stage">
-      <canvas id="cv" width="900" height="900" aria-label="Spelyta kvadrat"></canvas>
-      <div class="hud">
+      <canvas id="cv" width="900" height="900" aria-label="Spelyta"></canvas>
+      <div class="hudBox" id="hudBox">
         <div class="score" id="scoreHUD">⭐ 0</div>
         <div class="best" id="bestHUD">🏆 0</div>
-        <button class="modePill" id="modePill" aria-label="Byt läge">⭐ Samla ⟳</button>
+        <button class="modePill" id="modePill">⭐ Samla ⟳</button>
         <div class="event" id="eventHUD">KAOS!</div>
       </div>
 
-      <div class="overlay" id="start">
+      <div class="overlay" id="startOv">
         <div class="card">
-          <h1 class="title">Emoji Dodge v2.5</h1>
-          <p class="sub">Kvadratisk arena (samma storlek i stående/liggande). Haptics, kaos-events, mode-knapp. Tap/click för att starta.</p>
+          <h1 class="title">Emoji Dodge v2.6</h1>
+          <p class="sub">Proffs-layout för mobil: joystick utanför spelytan, kvadratisk arena som maxar utrymmet i både stående & liggande.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn" id="startBtn">▶ Starta</button>
             <select class="select" id="themeSel">
@@ -76,18 +67,17 @@
               <option value="dodge">🚫 Undvik</option>
             </select>
           </div>
-          <div class="tiny">Tips: På iPhone körs bästa helskärm via “Lägg till på hemskärmen”.</div>
+          <div class="sub" style="font-size:12px">Tips: Lägg till på hemskärmen i iOS för riktig helskärm.</div>
         </div>
       </div>
 
-      <div class="overlay" id="over" style="display:none">
+      <div class="overlay" id="overOv">
         <div class="card">
           <h2 class="title" style="margin:0 0 6px">Game Over 💥</h2>
           <p class="sub">Poäng: <b id="finalScore">0</b> · Bästa: <b id="finalBest">0</b></p>
           <div class="row">
             <button class="btn" id="retryBtn">🔁 Spela igen</button>
             <button class="btn sec" id="menuBtn">🏠 Meny</button>
-            <button class="btn sec" id="shareBtn">📤 Dela</button>
           </div>
         </div>
       </div>
@@ -98,43 +88,94 @@
 </div>
 
 <script>
-// ======= Canvas & HUD =======
+// ===== Layout math =====
+const stage = document.getElementById('stage');
 const cv = document.getElementById('cv');
-const ctx = cv.getContext('2d');
+const hudBox = document.getElementById('hudBox');
+const stick = document.getElementById('stick');
+
+function sa(name){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))||0; }
+function safeInsets(){
+  const div = document.createElement('div');
+  div.style.cssText="position:fixed;left:0;top:0;height:env(safe-area-inset-top);width:0;";
+  document.body.appendChild(div);
+  const top = div.getBoundingClientRect().height; div.remove();
+  // bottom/left/right approximations (iOS returns 0 for left/right sometimes; good enough for padding)
+  return {top, bottom: sa('env(safe-area-inset-bottom)'), left: sa('env(safe-area-inset-left)'), right: sa('env(safe-area-inset-right)')};
+}
+
+function layout(){
+  const vw = window.visualViewport ? window.visualViewport.width : innerWidth;
+  const vh = window.visualViewport ? window.visualViewport.height : innerHeight;
+  const s = safeInsets();
+  const pad = 12;
+  const isLandscape = vw > vh;
+
+  // joystick size scales with shorter side
+  const joy = Math.round(Math.max(110, Math.min(140, Math.min(vw, vh)*0.18)));
+  stick.style.width = stick.style.height = joy + 'px';
+
+  let side;
+  if(isLandscape){
+    // reserve left gutter for joystick
+    const gutter = joy + 24 + s.left;
+    side = Math.min(vh - (pad*2 + s.top + s.bottom), vw - (pad*2 + s.left + s.right) - gutter);
+    side = Math.max(300, Math.min(side, 1100));
+    const left = Math.round((vw - (side + gutter))/2 + gutter);
+    const top  = Math.round((vh - side)/2);
+    positionBox(cv, left, top, side, side);
+    // joystick left centered
+    stick.style.left = Math.round(left - joy - 16) + 'px';
+    stick.style.top  = Math.round(top + (side - joy)/2) + 'px';
+  }else{
+    // portrait: reserve bottom gutter for joystick
+    const gutter = joy + 28 + s.bottom;
+    side = Math.min(vw - (pad*2 + s.left + s.right), vh - (pad*2 + s.top + s.bottom) - gutter);
+    side = Math.max(300, Math.min(side, 1100));
+    const left = Math.round((vw - side)/2);
+    const top  = Math.round((vh - (side + gutter))/2);
+    positionBox(cv, left, top, side, side);
+    // joystick centered under canvas
+    stick.style.left = Math.round(left + (side - joy)/2) + 'px';
+    stick.style.top  = Math.round(top + side + 12) + 'px';
+  }
+  // HUD/Overlays match canvas rect
+  const r = cv.getBoundingClientRect();
+  positionBox(hudBox, r.left, r.top, r.width, r.height);
+  positionBox(document.getElementById('startOv'), r.left, r.top, r.width, r.height);
+  positionBox(document.getElementById('overOv'),  r.left, r.top, r.width, r.height);
+}
+
+function positionBox(el, left, top, w, h){
+  el.style.left = left + 'px';
+  el.style.top  = top  + 'px';
+  el.style.width = w + 'px';
+  el.style.height= h + 'px';
+}
+
+addEventListener('resize', layout);
+if (window.visualViewport) visualViewport.addEventListener('resize', layout);
+layout();
+
+// ===== HUD & State =====
 const HUD = {
   score: document.getElementById('scoreHUD'),
   best: document.getElementById('bestHUD'),
   event: document.getElementById('eventHUD'),
-  start: document.getElementById('start'),
-  over: document.getElementById('over'),
+  start: document.getElementById('startOv'),
+  over: document.getElementById('overOv'),
   finalScore: document.getElementById('finalScore'),
   finalBest: document.getElementById('finalBest'),
   themeSel: document.getElementById('themeSel'),
   modeSelStart: document.getElementById('modeSelStart'),
-  modePill: document.getElementById('modePill'),
-  stage: document.getElementById('stage')
+  modePill: document.getElementById('modePill')
 };
 
-// ======= Square Fit =======
-function fitSquare(){
-  const vw = window.visualViewport ? window.visualViewport.width : innerWidth;
-  const vh = window.visualViewport ? window.visualViewport.height : innerHeight;
-  const pad = 12 + Math.max(0, parseInt(getComputedStyle(document.body).padding||'0'));
-  const s = Math.min(vw, vh) - pad*2; // square side in CSS px
-  const side = Math.max(280, Math.min(s, 1100));
-  cv.style.width = side + 'px';
-  cv.style.height = side + 'px';
-}
-addEventListener('resize',fitSquare);
-if (window.visualViewport) visualViewport.addEventListener('resize',fitSquare);
-fitSquare();
-
-// ======= Storage =======
-const STORAGE_KEY='emoji_dodge_v25_best';
+const STORAGE_KEY='emoji_dodge_v26_best';
 let best = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
 HUD.best.textContent = '🏆 '+best;
 
-// ======= Themes =======
+// Themes
 const THEMES={
   default:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'],
   spooky:['👻','💀','🕷️','🕸️','🧟','🧛','🦇','🔮'],
@@ -143,28 +184,28 @@ const THEMES={
   flags:['🏴‍☠️','🚩','🇸🇪','🇯🇵','🇺🇸','🇧🇷','🇪🇸','🇩🇪','🇬🇧']
 };
 
-// ======= Audio & Haptics =======
+// Audio + Haptics
 const AC = window.AudioContext || window.webkitAudioContext;
 let actx=null, muted=false;
 function ensureAudio(){ if(!actx) actx=new AC(); }
 function tone(f=600,d=0.07,t='sine',v=0.025){ if(muted||!actx) return; const o=actx.createOscillator(); const g=actx.createGain(); o.type=t;o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+d); }
 function vibrate(p){ if(navigator.vibrate) navigator.vibrate(p); else shakeFallback(); }
-function shakeFallback(){ HUD.stage.classList.remove('shake'); void HUD.stage.offsetWidth; HUD.stage.classList.add('shake'); tone(120,0.04,'sine',0.015); }
+function shakeFallback(){ stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); tone(120,0.04,'sine',0.015); }
 function boom(){ tone(80,0.25,'sawtooth',0.05); vibrate([20,30,40]); }
 function bling(){ tone(900,0.08,'triangle',0.045); vibrate(15); }
 function stinger(){ tone(520,0.12,'square',0.04); setTimeout(()=>tone(720,0.12,'square',0.04),120); vibrate([10,30,10]); }
 function heartBeat(){ tone(200,0.05,'sine',0.03); setTimeout(()=>tone(160,0.05,'sine',0.03),90); vibrate(10); }
 function wallBump(){ tone(280,0.03,'square',0.02); vibrate(8); }
 
-// ======= Game State =======
+// Game state
 let running=false, mode='collect', theme='default';
 let t=0,last=0,dt=0,score=0,gravity=1,warp=1;
 let hazards=[],goods=[],particles=[];
 let autoEventTimer=0, fx={blur:0,blackout:0};
 const player={x:cv.width/2,y:cv.height*0.78,r:26,spd:370,emoji:'😎',evo:0};
 
-// ======= Playfield Clamp (square) =======
-const playfieldMargin = 22;
+// Playfield clamp
+const playfieldMargin = 24;
 function clampPlayer(){
   const minX = playfieldMargin + player.r;
   const maxX = cv.width - playfieldMargin - player.r;
@@ -178,7 +219,7 @@ function clampPlayer(){
   if(clamped) wallBump();
 }
 
-// ======= Input =======
+// Input
 const keys={ArrowUp:0,ArrowDown:0,ArrowLeft:0,ArrowRight:0,KeyW:0,KeyA:0,KeyS:0,KeyD:0,KeyM:0};
 addEventListener('keydown',e=>{ if(e.code in keys) keys[e.code]=1; if(e.code==='KeyM') muted=!muted; });
 addEventListener('keyup',e=>{ if(e.code in keys) keys[e.code]=0; });
@@ -193,58 +234,44 @@ HUD.modePill.addEventListener('click', ()=>{
 // Start/Retry/Menu
 document.getElementById('startBtn').addEventListener('click', (e)=>{ e.preventDefault(); ensureAudio(); setOptionsFromMenu(); start(); }, {passive:false});
 document.getElementById('retryBtn').addEventListener('click', (e)=>{ e.preventDefault(); ensureAudio(); start(); }, {passive:false});
-document.getElementById('menuBtn').addEventListener('click', (e)=>{ e.preventDefault(); HUD.over.style.display='none'; HUD.start.style.display='grid'; }, {passive:false});
+document.getElementById('menuBtn').addEventListener('click', (e)=>{ e.preventDefault(); HUD.over.classList.remove('show'); HUD.start.classList.add('show'); }, {passive:false});
 cv.addEventListener('click', ()=>{ if(!running){ ensureAudio(); setOptionsFromMenu(); start(); } }, {passive:true});
-HUD.start.addEventListener('click', ()=>{ if(!running){ ensureAudio(); setOptionsFromMenu(); start(); } }, {passive:true});
-
-// Share
-document.getElementById('shareBtn').addEventListener('click', async ()=>{
-  const img = posterImage(Math.floor(score), best, theme, mode);
-  try{
-    if(navigator.canShare && navigator.canShare({files:[img]})){
-      await navigator.share({ title:'Emoji Dodge', text:`Jag fick ${Math.floor(score)} poäng!`, files:[img] });
-    } else {
-      const url = URL.createObjectURL(img);
-      const a = Object.assign(document.createElement('a'), {href:url, download:'emoji_dodge_score.png'});
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 1000);
-    }
-  }catch{}
-});
 
 function setOptionsFromMenu(){
   theme = HUD.themeSel.value;
-  mode  = HUD.modeSelStart.value;
+  mode  = document.getElementById('modeSelStart').value;
   HUD.modePill.textContent = (mode==='collect') ? '⭐ Samla ⟳' : '🚫 Undvik ⟳';
 }
 
-// ======= Mobile Joystick =======
-const stick=document.getElementById('stick');
+// Mobile joystick (outside canvas)
 let stickActive=false, stickStart=null, stickVec={x:0,y:0};
 ['touchstart','touchmove','touchend','touchcancel'].forEach(tp=>stick.addEventListener(tp,ev=>{
   if(tp==='touchstart'){ stickActive=true; const r=stick.getBoundingClientRect(); const t=ev.touches[0]; stickStart={x:t.clientX-(r.left+r.width/2), y:t.clientY-(r.top+r.height/2)}; stickVec={x:0,y:0}; }
-  else if(tp==='touchmove'){ const r=stick.getBoundingClientRect(); const t=ev.touches[0]; const dx=t.clientX-(r.left+r.width/2)-stickStart.x; const dy=t.clientY-(r.top+r.height/2)-stickStart.y; const m=Math.hypot(dx,dy); const lim=52; const cl=Math.min(lim,m); const nx=m?dx/m:0, ny=m?dy/m:0; stickVec={x:(cl/lim)*nx,y:(cl/lim)*ny}; }
+  else if(tp==='touchmove'){ const r=stick.getBoundingClientRect(); const t=ev.touches[0]; const dx=t.clientX-(r.left+r.width/2)-stickStart.x; const dy=t.clientY-(r.top+r.height/2)-stickStart.y; const m=Math.hypot(dx,dy); const lim=r.width*0.45; const cl=Math.min(lim,m); const nx=m?dx/m:0, ny=m?dy/m:0; stickVec={x:(cl/lim)*nx,y:(cl/lim)*ny}; }
   else { stickActive=false; stickVec={x:0,y:0}; }
   ev.preventDefault();
 },{passive:false}));
 
-// ======= Core =======
+// Start overlay visible initially
+HUD.start.classList.add('show');
+
+// Core
 function start(){
   hazards.length=0; goods.length=0; particles.length=0;
   score=0; t=0; gravity=1; warp=1; fx.blur=0; fx.blackout=0;
   player.x=cv.width/2; player.y=cv.height*0.78; player.evo=0; player.emoji='😎';
   running=true; last=0;
-  HUD.start.style.display='none'; HUD.over.style.display='none';
+  HUD.start.classList.remove('show'); HUD.over.classList.remove('show');
   requestAnimationFrame(loop);
 }
 
 function gameOver(){
   running=false; boom();
   const s=Math.floor(score);
-  HUD.finalScore.textContent=s;
+  document.getElementById('finalScore').textContent=s;
   if(s>best){ best=s; localStorage.setItem(STORAGE_KEY,String(best)); }
-  HUD.finalBest.textContent=best;
-  HUD.over.style.display='grid';
+  document.getElementById('finalBest').textContent=best;
+  HUD.over.classList.add('show');
 }
 
 function spawnHazard(){
@@ -259,7 +286,7 @@ function addParticles(x,y,n=14,color='#fff'){ for(let i=0;i<n;i++){ particles.pu
 function toast(txt){ HUD.event.textContent=txt; HUD.event.style.opacity=1; setTimeout(()=>HUD.event.style.opacity=0,1000); }
 
 function triggerEvent(type){
-  stinger(); // haptics bump at start of chaos
+  stinger();
   if(type==='flip'){ gravity*=-1; toast('🌀 Gravity Flip'); }
   if(type==='big'){ hazards.forEach(h=>h.r*=1.7); toast('🧠 Everything Big'); }
   if(type==='blur'){ fx.blur=5; toast('🌫️ Blur Mode'); setTimeout(()=>fx.blur=0, 4500); }
@@ -294,9 +321,8 @@ function loop(now){
   player.y += (iy/mag)*player.spd*dt;
   player.y += 100*gravity*dt;
 
-  // clamp & near-miss
-  const before={x:player.x,y:player.y};
   clampPlayer();
+
   // hazards
   let near=false;
   for(let i=hazards.length-1;i>=0;i--){
@@ -333,8 +359,9 @@ function loop(now){
 }
 
 function draw(){
+  const ctx = cv.getContext('2d');
   ctx.clearRect(0,0,cv.width,cv.height);
-  // grid within margin
+  // grid
   ctx.save(); ctx.globalAlpha=0.05; ctx.strokeStyle='#cbd5ff';
   const grid=90; ctx.beginPath();
   for(let gx=playfieldMargin;gx<cv.width-playfieldMargin;gx+=grid){ ctx.moveTo(gx,playfieldMargin); ctx.lineTo(gx,cv.height-playfieldMargin); }
@@ -364,37 +391,13 @@ function draw(){
 
 function addParticles(x,y,n=14,color='#fff'){ for(let i=0;i<n;i++){ particles.push({x,y,vx:(Math.random()-0.5)*230,vy:(Math.random()-0.5)*230,life:0.7+Math.random()*0.5,color}); } }
 function drawEmoji(e,x,y,size,rot,glow){
+  const ctx=cv.getContext('2d');
   ctx.save();
   ctx.translate(x,y); ctx.rotate(rot);
   ctx.font = `${size}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
   if(glow){ ctx.shadowColor=glow; ctx.shadowBlur=14; ctx.shadowOffsetY=2; }
   ctx.fillText(e,0,0);
   ctx.restore();
-}
-
-// ======= Poster Share =======
-function posterImage(score, best, theme, mode){
-  const w=1200,h=630;
-  const can=document.createElement('canvas'); can.width=w; can.height=h;
-  const c=can.getContext('2d');
-  // bg
-  const grd=c.createLinearGradient(0,0,0,h); grd.addColorStop(0,'#0b0f1a'); grd.addColorStop(1,'#111a33'); c.fillStyle=grd; c.fillRect(0,0,w,h);
-  c.fillStyle='rgba(255,255,255,.07)'; for(let x=0;x<w;x+=60){ c.fillRect(x,0,1,h);} for(let y=0;y<h;y+=60){ c.fillRect(0,y,w,1);}
-  // title
-  c.font='bold 64px system-ui, sans-serif'; c.fillStyle='#f1f5ff'; c.fillText('Emoji Dodge', 60, 120);
-  c.font='28px system-ui, sans-serif'; c.fillStyle='#9aa5c3'; c.fillText('v2.5 – Square Arena', 60, 160);
-  // score
-  c.font='bold 110px system-ui, sans-serif'; c.fillStyle='#ffd166'; c.fillText('⭐ ' + score, 60, 300);
-  c.font='bold 42px system-ui, sans-serif'; c.fillStyle='#cbd5ff'; c.fillText('🏆 Bästa: ' + best, 60, 360);
-  // mode/theme
-  c.font='32px system-ui, sans-serif'; c.fillStyle='#9aa5c3'; c.fillText((mode==='collect'?'⭐ Samla':'🚫 Undvik') + ' · Tema: ' + theme, 60, 420);
-  // player emoji
-  c.font='140px serif'; c.fillText('😎', w-220, h-120);
-  // export
-  const data = can.toDataURL('image/png');
-  const bin = atob(data.split(',')[1]); const buf = new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
-  return new File([buf], 'emoji_dodge_score.png', {type:'image/png'});
 }
 </script>
 </body>
