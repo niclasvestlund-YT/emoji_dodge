@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Emoji Dodge – v2.1 Mobile+</title>
+<style>
+  :root{ --bg:#080b14; --text:#f1f5ff; --muted:#9aa5c3; --gold:#ffd166; --red:#ff6b6b; }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:radial-gradient(1200px 700px at 70% -10%, #182046, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial}
+  .wrap{display:flex;flex-direction:column;height:100%}
+  main{position:relative;flex:1;display:grid;place-items:center;overflow:hidden}
+  canvas{border-radius:18px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.5);background: radial-gradient(800px 500px at 50% -100px, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01))}
+  .hud{position:absolute;inset:0;pointer-events:none}
+  .score{position:absolute;left:14px;top:10px;font-weight:900;font-size: clamp(26px, 5vw, 42px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
+  .best{position:absolute;left:14px;top:56px;font-weight:800;opacity:.9;font-size: clamp(14px, 2.6vw, 18px)}
+  .mode{position:absolute;right:12px;top:12px;font-weight:700;opacity:.9;font-size: clamp(14px, 2.4vw, 18px);background: rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;pointer-events:auto}
+  .event{position:absolute;left:50%;top:12%;transform:translateX(-50%);font-weight:900;font-size: clamp(22px, 3.6vw, 36px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+  .overlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(8,11,20,.72);backdrop-filter: blur(2px)}
+  .card{max-width:min(760px,92vw);padding:22px;border-radius:18px;background:linear-gradient(180deg, rgba(22,28,46,.88), rgba(14,18,34,.86));border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center}
+  .title{margin:0 0 6px;font-size: clamp(26px, 4.2vw, 46px);font-weight:900}
+  .sub{margin:0 0 14px;color:var(--muted)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .btn{pointer-events:auto;border:none;border-radius:12px;padding:14px 18px;font-weight:800;cursor:pointer;color:#071022;background:var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:18px}
+  .btn.sec{background:#1c2546;color:var(--text);border:1px solid rgba(255,255,255,.12)}
+  .select{appearance:none;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 12px}
+  .tiny{font-size:12px;color:var(--muted)}
+  .panel{position:absolute;right:10px;bottom:10px;display:none;gap:6px;flex-wrap:wrap}
+  .panel.show{display:flex}
+  .sbtn{pointer-events:auto;border:none;border-radius:10px;padding:8px 10px;font-weight:800;cursor:pointer;color:#071022;background:#cfe1ff;border:1px solid rgba(255,255,255,.18)}
+  /* Mobile joystick */
+  .stick{position:absolute;left:14px;bottom:14px;width:124px;height:124px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none}
+  .stick::after{content:"";position:absolute;left:50%;top:50%;width:64px;height:64px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
+  @media (hover:none) and (pointer:coarse){ .stick{display:block} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main>
+    <canvas id="cv" width="900" height="600"></canvas>
+    <div class="hud">
+      <div class="score" id="scoreHUD">⭐ 0</div>
+      <div class="best" id="bestHUD">🏆 0</div>
+      <select class="mode" id="modeSel">
+        <option value="collect">⭐ Samla</option>
+        <option value="dodge">🚫 Undvik</option>
+      </select>
+      <div class="event" id="eventHUD">KAOS!</div>
+    </div>
+
+    <div class="overlay" id="start">
+      <div class="card">
+        <h1 class="title">Emoji Dodge v2.1</h1>
+        <p class="sub">Tap/click var som helst för att starta. WASD/Pilar eller joystick. M=ljud, P=paus.</p>
+        <div class="row" style="margin-bottom:10px">
+          <button class="btn" id="startBtn">▶ Starta</button>
+          <select class="select" id="themeSel">
+            <option value="default">Standard</option>
+            <option value="spooky">Spooky 👻</option>
+            <option value="food">Mat 🥑</option>
+            <option value="sports">Sport 🏀</option>
+            <option value="flags">Flaggor 🚩</option>
+          </select>
+          <select class="select" id="modeSelStart">
+            <option value="collect">⭐ Samla</option>
+            <option value="dodge">🚫 Undvik</option>
+          </select>
+        </div>
+        <div class="tiny">Tips: Kaos-event triggas automatiskt. Ljudeffekter aktiveras efter första tap/click (krävs av iOS/Android).</div>
+      </div>
+    </div>
+
+    <div class="overlay" id="over" style="display:none">
+      <div class="card">
+        <h2 class="title" style="margin:0 0 6px">Game Over 💥</h2>
+        <p class="sub">Poäng: <b id="finalScore">0</b> · Bästa: <b id="finalBest">0</b></p>
+        <div class="row">
+          <button class="btn" id="retryBtn">🔁 Spela igen</button>
+          <button class="btn sec" id="menuBtn">🏠 Meny</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel">
+      <button class="sbtn" data-ev="flip">Flip</button>
+      <button class="sbtn" data-ev="big">Big</button>
+      <button class="sbtn" data-ev="blur">Blur</button>
+      <button class="sbtn" data-ev="banana">Bananas</button>
+      <button class="sbtn" data-ev="warp">Warp</button>
+      <button class="sbtn" data-ev="blackout">Blackout</button>
+    </div>
+
+    <div class="stick" id="stick"></div>
+  </main>
+</div>
+
+<script>
+// Canvas & HUD
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const HUD = {
+  score: document.getElementById('scoreHUD'),
+  best: document.getElementById('bestHUD'),
+  event: document.getElementById('eventHUD'),
+  start: document.getElementById('start'),
+  over: document.getElementById('over'),
+  finalScore: document.getElementById('finalScore'),
+  finalBest: document.getElementById('finalBest'),
+  themeSel: document.getElementById('themeSel'),
+  modeSel: document.getElementById('modeSel'),
+  modeSelStart: document.getElementById('modeSelStart'),
+  panel: document.getElementById('panel')
+};
+
+// Fit
+function fit(){
+  const pad=12;
+  const r=cv.width/cv.height;
+  let maxW=Math.min(innerWidth-pad*2, 1100);
+  let maxH=Math.min(innerHeight-pad*2, 820);
+  let w=maxW, h=Math.round(maxW/r);
+  if(h>maxH){ h=maxH; w=Math.round(h*r); }
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+}
+addEventListener('resize',fit); fit();
+
+// Storage
+const STORAGE_KEY='emoji_dodge_v21_best';
+let best = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+HUD.best.textContent = '🏆 '+best;
+
+// Themes
+const THEMES={
+  default:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'],
+  spooky:['👻','💀','🕷️','🕸️','🧟','🧛','🦇','🔮'],
+  food:['🍔','🍕','🌮','🍟','🍩','🍗','🍰','🍣'],
+  sports:['🏀','🏈','⚽','🎯','🎱','🏐','🥊','🎾','🏸'],
+  flags:['🏴‍☠️','🚩','🇸🇪','🇯🇵','🇺🇸','🇧🇷','🇪🇸','🇩🇪','🇬🇧']
+};
+
+// Audio (lazy init on first interaction)
+const AC = window.AudioContext || window.webkitAudioContext;
+let actx=null, muted=false;
+function ensureAudio(){ if(!actx) actx=new AC(); }
+function tone(f=600,d=0.07,t='sine',v=0.025){ if(muted) return; if(!actx) return; const o=actx.createOscillator(); const g=actx.createGain(); o.type=t;o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+d); }
+function boom(){ tone(80,0.25,'sawtooth',0.05); }
+function bling(){ tone(900,0.08,'triangle',0.045); }
+function stinger(){ tone(520,0.12,'square',0.04); setTimeout(()=>tone(720,0.12,'square',0.04),120); }
+function heartBeat(){ tone(200,0.05,'sine',0.03); setTimeout(()=>tone(160,0.05,'sine',0.03),90); }
+
+// Game state
+let running=false, paused=false, mode='collect', theme='default';
+let t=0,last=0,dt=0,score=0,gravity=1,warp=1;
+let hazards=[],goods=[],particles=[];
+let autoEventTimer=0, fx={blur:0,blackout:0};
+const player={x:cv.width/2,y:cv.height*0.78,r:24,spd:370,emoji:'😎',evo:0};
+
+// Input
+const keys={ArrowUp:0,ArrowDown:0,ArrowLeft:0,ArrowRight:0,KeyW:0,KeyA:0,KeyS:0,KeyD:0,KeyM:0,KeyP:0,F1:0,'Digit1':0,'Digit2':0,'Digit3':0,'Digit4':0,'Digit5':0,'Digit6':0};
+addEventListener('keydown',e=>{
+  if(e.code in keys) keys[e.code]=1;
+  if(e.code==='KeyM'){ muted=!muted; }
+  if(e.code==='KeyP'){ togglePause(); }
+  if(e.code==='F1'){ HUD.panel.classList.toggle('show'); }
+  if(e.code==='Digit1') triggerEvent('flip');
+  if(e.code==='Digit2') triggerEvent('big');
+  if(e.code==='Digit3') triggerEvent('blur');
+  if(e.code==='Digit4') triggerEvent('banana');
+  if(e.code==='Digit5') triggerEvent('warp');
+  if(e.code==='Digit6') triggerEvent('blackout');
+});
+addEventListener('keyup',e=>{ if(e.code in keys) keys[e.code]=0; });
+
+// Tap anywhere to start
+cv.addEventListener('click', tryStart);
+HUD.start.addEventListener('click', tryStart);
+document.getElementById('startBtn').addEventListener('click', tryStart, {passive:true});
+
+function tryStart(){
+  ensureAudio(); // user gesture unlocks audio on mobile
+  theme = HUD.themeSel.value;
+  mode  = HUD.modeSelStart.value;
+  HUD.modeSel.value = mode;
+  start();
+}
+
+// Mobile joystick
+const stick=document.getElementById('stick');
+let stickActive=false, stickStart=null, stickVec={x:0,y:0};
+['touchstart','touchmove','touchend','touchcancel'].forEach(tp=>stick.addEventListener(tp,ev=>{
+  if(tp==='touchstart'){ stickActive=true; const r=stick.getBoundingClientRect(); const t=ev.touches[0]; stickStart={x:t.clientX-(r.left+r.width/2), y:t.clientY-(r.top+r.height/2)}; stickVec={x:0,y:0}; }
+  else if(tp==='touchmove'){ const r=stick.getBoundingClientRect(); const t=ev.touches[0]; const dx=t.clientX-(r.left+r.width/2)-stickStart.x; const dy=t.clientY-(r.top+r.height/2)-stickStart.y; const m=Math.hypot(dx,dy); const lim=52; const cl=Math.min(lim,m); const nx=m?dx/m:0, ny=m?dy/m:0; stickVec={x:(cl/lim)*nx,y:(cl/lim)*ny}; }
+  else { stickActive=false; stickVec={x:0,y:0}; }
+  ev.preventDefault();
+},{passive:false}));
+
+// Panel buttons
+HUD.panel.addEventListener('click',e=>{ const b=e.target.closest('[data-ev]'); if(!b) return; triggerEvent(b.dataset.ev); });
+
+HUD.modeSel.onchange=(e)=>{ mode=e.target.value; toast(mode==='collect'?'⭐ Samla-läge':'🚫 Undvik-läge'); };
+
+// Core
+function start(){
+  hazards.length=0; goods.length=0; particles.length=0;
+  score=0; t=0; gravity=1; warp=1; fx.blur=0; fx.blackout=0;
+  player.x=cv.width/2; player.y=cv.height*0.78; player.evo=0; player.emoji='😎';
+  running=true; paused=false; last=0;
+  HUD.start.style.display='none'; HUD.over.style.display='none';
+  requestAnimationFrame(loop);
+}
+
+function gameOver(){
+  running=false; boom();
+  const s=Math.floor(score);
+  HUD.finalScore.textContent=s;
+  if(s>best){ best=s; localStorage.setItem(STORAGE_KEY,String(best)); }
+  HUD.finalBest.textContent=best;
+  HUD.over.style.display='grid';
+}
+
+function togglePause(){ if(!running) return; paused=!paused; if(paused){ HUD.event.textContent='PAUS'; HUD.event.style.opacity=1; } else { HUD.event.style.opacity=0; } }
+
+function spawnHazard(){
+  const arr=THEMES[theme];
+  const baseR=18 + Math.random()*28;
+  const speedScale=(baseR<22?1.45:1.0);
+  hazards.push({ x:Math.random()*cv.width, y:-40, r:baseR, vy:(150+Math.random()*220+Math.min(280,score*0.6))*speedScale, vx:(Math.random()-0.5)*90, rot:Math.random()*Math.PI*2, spin:(Math.random()-0.5)*2, emoji:arr[Math.floor(Math.random()*arr.length)] });
+}
+function spawnGood(){ goods.push({ x:30+Math.random()*(cv.width-60), y:-30, r:20, vy:150+Math.random()*120, emoji:'⭐', pulse:Math.random()*Math.PI*2 }); }
+function addParticles(x,y,n=14,color='#fff'){ for(let i=0;i<n;i++){ particles.push({x,y,vx:(Math.random()-0.5)*230,vy:(Math.random()-0.5)*230,life:0.7+Math.random()*0.5,color}); } }
+
+function toast(txt){ HUD.event.textContent=txt; HUD.event.style.opacity=1; setTimeout(()=>HUD.event.style.opacity=0,1000); }
+
+function triggerEvent(type){
+  stinger();
+  if(type==='flip'){ gravity*=-1; toast('🌀 Gravity Flip'); }
+  if(type==='big'){ hazards.forEach(h=>h.r*=1.7); toast('🧠 Everything Big'); }
+  if(type==='blur'){ fx.blur=5; toast('🌫️ Blur Mode'); setTimeout(()=>fx.blur=0, 4500); }
+  if(type==='banana'){ for(let i=0;i<14;i++) hazards.push({x:Math.random()*cv.width,y:-40,r:22+Math.random()*10,vy:200+Math.random()*180,vx:(Math.random()-0.5)*40,rot:0,spin:(Math.random()-0.5)*2,emoji:'🍌'}); toast('🍌 Banana Rain'); }
+  if(type==='warp'){ warp = (warp===1?1.55:1); toast(warp>1?'⏱️ Speed Up':'⏱️ Normal'); }
+  if(type==='blackout'){ fx.blackout=1; toast('🌑 Blackout'); setTimeout(()=>fx.blackout=0, 5500); }
+}
+function autoEvents(dt){ autoEventTimer+=dt; if(autoEventTimer>=28){ autoEventTimer=0; const arr=['flip','big','blur','banana','warp','blackout']; triggerEvent(arr[Math.floor(Math.random()*arr.length)]); } }
+function evolve(elapsed){ const st=Math.floor(elapsed/24); if(st!==player.evo){ player.evo=st; player.emoji = st>=3?'🦄':st==2?'🤖':'🤠'; toast('⭐ Evolverad!'); } }
+
+function loop(now){
+  if(!running) return;
+  requestAnimationFrame(loop);
+  if(!last) last=now; dt=((now-last)/1000)*warp; last=now;
+  if(paused){ draw(true); return; }
+
+  autoEvents(dt);
+  evolve(score/4);
+
+  // spawn pace
+  const hazardInt=Math.max(0.16, 0.7 - score*0.0025);
+  const goodInt=Math.max(0.68, 1.45 - score*0.0015);
+  t+=dt;
+  if(t % hazardInt < dt) spawnHazard();
+  if(mode==='collect' && t % goodInt < dt) spawnGood();
+
+  // input
+  const up=keys.ArrowUp||keys.KeyW, down=keys.ArrowDown||keys.KeyS, left=keys.ArrowLeft||keys.KeyA, right=keys.ArrowRight||keys.KeyD;
+  let ix=(right?1:0)-(left?1:0), iy=(down?1:0)-(up?1:0);
+  if(stickActive){ ix += stickVec.x*1.2; iy += stickVec.y*1.2; }
+  const mag=Math.hypot(ix,iy)||1;
+  player.x += (ix/mag)*player.spd*dt;
+  player.y += (iy/mag)*player.spd*dt;
+  player.y += 100*gravity*dt;
+  player.x = Math.max(player.r, Math.min(cv.width-player.r, player.x));
+  player.y = Math.max(player.r, Math.min(cv.height-player.r, player.y));
+
+  // hazards
+  let near=false;
+  for(let i=hazards.length-1;i>=0;i--){
+    const h=hazards[i];
+    h.y += h.vy*dt*gravity; h.x += h.vx*dt; h.rot += h.spin*dt;
+    if(h.x<h.r||h.x>cv.width-h.r) h.vx*=-1;
+    const d2 = (player.x-h.x)**2+(player.y-h.y)**2;
+    if(d2 < (player.r+h.r+30)**2 && d2 > (player.r+h.r)**2) near=true;
+    if(d2 <= (player.r+h.r)**2){ return gameOver(); }
+    if((gravity>0 && h.y-h.r>cv.height+60) || (gravity<0 && h.y+h.r<-60)) hazards.splice(i,1);
+  }
+  if(near && Math.random()<0.08) heartBeat();
+
+  // goods
+  if(mode==='collect'){
+    for(let i=goods.length-1;i>=0;i--){
+      const g=goods[i];
+      g.y += g.vy*dt*gravity; g.pulse+=dt*3;
+      if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){ score+=25; bling(); addParticles(g.x,g.y,20,'#ffd166'); goods.splice(i,1); continue; }
+      if((gravity>0 && g.y-g.r>cv.height+40) || (gravity<0 && g.y+g.r<-40)) goods.splice(i,1);
+    }
+  }
+
+  // particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i]; p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; }
+    p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 380*dt;
+  }
+
+  score += dt*4;
+  HUD.score.textContent='⭐ '+Math.floor(score);
+
+  draw(false);
+}
+
+function draw(paused){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // grid
+  ctx.save(); ctx.globalAlpha=0.05; ctx.strokeStyle='#cbd5ff';
+  const grid=60; ctx.beginPath();
+  for(let gx=0;gx<cv.width;gx+=grid){ ctx.moveTo(gx,0); ctx.lineTo(gx,cv.height); }
+  for(let gy=0;gy<cv.height;gy+=grid){ ctx.moveTo(0,gy); ctx.lineTo(cv.width,gy); }
+  ctx.stroke(); ctx.restore();
+
+  // particles
+  particles.forEach(p=>{ ctx.save(); ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
+
+  // goods
+  goods.forEach(g=>{
+    const pulse=0.35+0.18*Math.sin(g.pulse*2);
+    ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffd166'; ctx.lineWidth=10;
+    ctx.beginPath(); ctx.arc(g.x,g.y,g.r+12,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    drawEmoji('⭐', g.x,g.y, g.r*2+4*Math.sin(g.pulse), 0, '#ffd166');
+  });
+
+  // hazards
+  hazards.forEach(h=>{
+    ctx.save(); ctx.globalAlpha=0.38; ctx.strokeStyle=varRed(); ctx.lineWidth=10;
+    ctx.beginPath(); ctx.arc(h.x,h.y,h.r+12,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    drawEmoji(h.emoji, h.x,h.y, h.r*2, h.rot, varRed());
+  });
+
+  // blackout spotlight
+  if(fx.blackout>0){
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,.82)'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.globalCompositeOperation='destination-out';
+    const rad=140; const g=ctx.createRadialGradient(player.x,player.y,rad*0.2, player.x,player.y,rad);
+    g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(player.x,player.y,rad,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  drawEmoji(player.emoji, player.x, player.y, player.r*2, 0, '#f1f5ff');
+}
+
+function varRed(){ return '#ff6b6b'; }
+function drawEmoji(e,x,y,size,rot,glow){
+  ctx.save();
+  ctx.translate(x,y); ctx.rotate(rot);
+  ctx.font = `${size}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  if(glow){ ctx.shadowColor=glow; ctx.shadowBlur=14; ctx.shadowOffsetY=2; }
+  ctx.fillText(e,0,0);
+  ctx.restore();
+}
+
+</script>
+</body>
+</html>
