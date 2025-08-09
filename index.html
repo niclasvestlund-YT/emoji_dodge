@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v3.5.1</title>
+<title>Emoji Dodge – v3.5.2</title>
 <meta name="theme-color" content="#0b0f1a" />
 <style>
   :root{
@@ -17,8 +17,8 @@
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%, #1a2248, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial;overscroll-behavior:none}
   .wrap{display:flex;flex-direction:column;min-height:100dvh;padding:calc(var(--safe-t)) calc(var(--safe-r)) calc(var(--safe-b)) calc(var(--safe-l))}
-  main{position:relative;flex:1;overflow:hidden}
-  .stage{position:relative;width:100%;height:100%}
+  main{position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column;gap:8px}
+  .stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center}
   canvas{position:absolute;display:block;border-radius:18px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.5);background: radial-gradient(800px 500px at 50% -100px, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); touch-action:none; z-index:1}
   .hudBox{position:absolute;pointer-events:none; z-index:2}
   .score{position:absolute;left:50%;transform:translateX(-50%);top:8px;font-weight:900;font-size: clamp(24px, 6vw, 44px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
@@ -39,16 +39,18 @@
   .modeBtn[data-active="true"]{outline:3px solid #ffd166}
   .alpha{margin-top:6px;font-weight:800;color:#ffd166;display:inline-flex;align-items:center;gap:8px}
   .alpha::before{content:"🛠"}
-  .stick{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none; z-index:3}
-  .stick::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
+  /* Controls bar OUTSIDE canvas */
+  .controls{position:relative;display:flex;justify-content:space-between;align-items:center;gap:16px;height:160px}
+  .stick{width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none}
+  .stick::after{content:"";position:absolute;left:50%;top:50%;width:62px;height:62px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
-  .action{position:absolute;width:118px;height:118px;border-radius:22px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:manipulation; transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease; z-index:3}
-  .action .big{font-size:36px}
+  .action{width:140px;height:140px;border-radius:22px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:manipulation; transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease;}
+  .action .big{font-size:44px}
   .action:active{ transform: translateY(1px) scale(.99) }
   .action.disabled{opacity:.45;filter:grayscale(0.2); box-shadow:none}
   .action.ready{ border-color: rgba(255, 209, 102, 0.9); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5); animation: pulseGlow 1.2s ease-out infinite; }
   @keyframes pulseGlow{ 0%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5);} 70%{ box-shadow: 0 0 0 16px rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5);} 100%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5);} }
-  .mute{position:absolute;right:12px;bottom:12px;border:none;border-radius:999px;padding:10px 12px;background:var(--glass);border:1px solid var(--glassBorder);color:var(--text);font-weight:800;pointer-events:auto; z-index:3}
+  .mute{border:none;border-radius:999px;padding:10px 12px;background:var(--glass);border:1px solid var(--glassBorder);color:var(--text);font-weight:800;pointer-events:auto}
   /* Intro */
   .intro{position:absolute;inset:0;display:none;place-items:center;text-align:center;z-index:5;background:radial-gradient(1200px 700px at 70% -10%, #1a2248, #080b14 60%);}
   .intro.show{display:grid; animation: fadeIn .6s ease forwards}
@@ -106,12 +108,19 @@
           </div>
         </div>
       </div>
-
-      <div class="stick" id="stick"></div>
-      <button class="action" id="actionBtn" aria-label="Action"><div class="big" id="actionIcon">💣</div></button>
-      <button class="mute" id="muteBtn">🔊</button>
-      <audio id="bgMusic" src="soundtrack.mp3" preload="auto" loop></audio>
     </div>
+
+    <!-- Controls OUTSIDE the canvas -->
+    <div class="controls">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="stick" id="stick"></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="action" id="actionBtn" aria-label="Action"><div class="big" id="actionIcon">💣</div></button>
+        <button class="mute" id="muteBtn">🔊</button>
+      </div>
+    </div>
+    <audio id="bgMusic" src="soundtrack.mp3" preload="auto" loop></audio>
   </main>
 </div>
 
@@ -140,23 +149,20 @@ const startOv=document.getElementById('startOv');
 const muteBtnMenu=document.getElementById('muteBtnMenu');
 const btnClassic=document.getElementById('btnClassic'), btnDoge=document.getElementById('btnDoge');
 const startBtn=document.getElementById('startBtn');
+
 function layout(){
   const vw = window.visualViewport ? visualViewport.width : innerWidth;
   const vh = window.visualViewport ? visualViewport.height : innerHeight;
-  const pad=12;
-  const joy = Math.round(Math.max(110, Math.min(140, Math.min(vw, vh)*0.18)));
-  stick.style.width=stick.style.height=joy+'px';
-  const act=Math.round(joy*0.95); actionBtn.style.width=actionBtn.style.height=act+'px';
-  // Square canvas centered
-  const side = Math.max(320, Math.min(Math.min(vw, vh) - pad*2, 1100));
-  const left = Math.round((vw-side)/2), top = Math.round((vh-side)/2);
+  const pad = 12; // outer padding
+  const controlsH = 160 + 8; // controls bar + gap to canvas
+  // Canvas size: square, using space ABOVE the controls bar
+  const side = Math.max(320, Math.min(Math.min(vw, vh - controlsH) - pad*2, 1100));
+  const left = Math.round((vw - side)/2);
+  const top  = Math.round((vh - controlsH - side)/2);
   position(cv,left,top,side,side);
-  // Controls anchored to canvas corners
-  stick.style.left=Math.round(left+12)+'px'; stick.style.top=Math.round(top+side-joy-12)+'px';
-  actionBtn.style.left=Math.round(left+side-act-12)+'px'; actionBtn.style.top=Math.round(top+side-act-12)+'px';
+
   const r=cv.getBoundingClientRect();
   positionBox('hudBox', r); positionBox('startOv', r); positionBox('overOv', r); positionBox('introOv', r);
-  muteBtn.style.left=Math.round(r.right-60)+'px'; muteBtn.style.top=Math.round(r.bottom-44)+'px';
 }
 function position(el,x,y,w,h){ el.style.left=x+'px'; el.style.top=y+'px'; el.style.width=w+'px'; el.style.height=h+'px'; }
 function positionBox(id,r){ const el=document.getElementById(id); if(!el) return; el.style.left=r.left+'px'; el.style.top=r.top+'px'; el.style.width=r.width+'px'; el.style.height=r.height+'px'; }
@@ -164,7 +170,7 @@ addEventListener('resize',layout); if (window.visualViewport) visualViewport.add
 
 // ===== HUD & State
 const HUD={ score:scoreHUD, bank:bankHUD, event:eventHUD, start:startOv, over:overOv, finalScore:finalScore, finalBest:finalBest };
-const STORAGE_KEY='emoji_dodge_v351_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
+const STORAGE_KEY='emoji_dodge_v352_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
 
 const THEMES={ classicHaz:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'], fun:['👻','💀','🕷️','🕸️','🍔','🍕','🌮','🍟','🏀','🎯','🎱'] };
 
@@ -519,7 +525,9 @@ function draw(){
 function drawEmoji(e,x,y,size,rot,glow){ const ctx=cv.getContext('2d'); ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.font=`${size}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; if(glow){ ctx.shadowColor=glow; ctx.shadowBlur=14; ctx.shadowOffsetY=2; } ctx.fillText(e,0,0); ctx.restore(); }
 
 // Boot
-HUD.score.textContent='0'; HUD.bank.textContent='—'; layout(); startFirstTime();
+HUD.score.textContent='0'; HUD.bank.textContent='—'; layout();
+function startFirstTime(){ showIntro(); }
+startFirstTime();
 </script>
 </body>
 </html>
