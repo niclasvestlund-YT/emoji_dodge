@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v2.7 Bomb Power</title>
+<title>Emoji Dodge – v3.2 Doge Edition (Voices)</title>
 <meta name="theme-color" content="#0b0f1a" />
 <style>
   :root{ --bg:#080b14; --text:#f1f5ff; --muted:#9aa5c3; --gold:#ffd166; --red:#ff6b6b; }
@@ -17,7 +17,6 @@
   .score{position:absolute;left:14px;top:10px;font-weight:900;font-size: clamp(22px, 4.5vw, 36px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
   .bank{position:absolute;left:14px;top:48px;font-weight:800;opacity:.95;font-size: clamp(14px, 3.2vw, 20px)}
   .modePill{position:absolute;right:12px;top:12px;font-weight:800;font-size: clamp(13px,2.6vw,18px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:9px 12px;border-radius:999px;pointer-events:auto;user-select:none;touch-action:manipulation;display:flex;align-items:center;gap:8px;backdrop-filter: blur(4px)}
-  .modePill:active{transform:scale(.98)}
   .event{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-weight:900;font-size: clamp(20px,3.6vw,32px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
   .overlay{position:absolute;display:none;place-items:center;background:rgba(8,11,20,.72);backdrop-filter: blur(2px); pointer-events:auto;border-radius:18px}
   .overlay.show{display:grid}
@@ -31,11 +30,11 @@
   .stick{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none}
   .stick::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
-  /* Right-thumb action button */
   .action{position:absolute;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter: blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:manipulation}
   .action .big{font-size:36px}
   .action .label{font-weight:900;font-size:16px}
   .action .cost{font-weight:800;font-size:14px;color:var(--muted)}
+  .mute{position:absolute;right:12px;bottom:12px;border:none;border-radius:999px;padding:10px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:var(--text);font-weight:800;pointer-events:auto}
   .action.disabled{opacity:.45;filter:grayscale(0.2)}
   .shake{animation:shake .18s ease-in-out}
   @keyframes shake{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(2px,0,0)}50%{transform:translate3d(-2px,0,0)}75%{transform:translate3d(2px,0,0)}100%{transform:translate3d(0,0,0)}}
@@ -49,29 +48,26 @@
       <div class="hudBox" id="hudBox">
         <div class="score" id="scoreHUD">⭐ 0</div>
         <div class="bank" id="bankHUD">💰 0</div>
-        <button class="modePill" id="modePill">⭐ Samla ⟳</button>
+        <button class="modePill" id="modePill">Tema</button>
         <div class="event" id="eventHUD">KAOS!</div>
       </div>
 
       <div class="overlay" id="startOv">
         <div class="card">
-          <h1 class="title">Emoji Dodge v2.7</h1>
-          <p class="sub">Nyhet: **Bombknapp** för högertummen – rensar skärmen. Kostar ⭐. Joystick ligger alltid utanför spelytan.</p>
+          <h1 class="title">Emoji Dodge v3.2</h1>
+          <p class="sub">Välj tema: <b>Classic</b> (Bomb) eller <b>Doge World</b> (Coins + To The Moon + HODL).</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn" id="startBtn">▶ Starta</button>
             <select class="select" id="themeSel">
-              <option value="default">Standard</option>
-              <option value="spooky">Spooky 👻</option>
-              <option value="food">Mat 🥑</option>
-              <option value="sports">Sport 🏀</option>
-              <option value="flags">Flaggor 🚩</option>
+              <option value="classic">Classic</option>
+              <option value="doge">Doge World 🐶🪙</option>
             </select>
             <select class="select" id="modeSelStart">
               <option value="collect">⭐ Samla</option>
               <option value="dodge">🚫 Undvik</option>
             </select>
           </div>
-          <div class="sub" style="font-size:12px">Tips: Samla ⭐ för att ladda bomben. iPhone: bäst helskärm via “Lägg till på hemskärmen”.</div>
+          <div class="sub" style="font-size:12px">Lägg <code>soundtrack.mp3</code> + <code>boss.mp3</code> i roten. Lägg röster i <code>assets/</code> som <code>to_the_moon.mp3</code>, <code>hodl.mp3</code>, <code>buy_the_dip.mp3</code>.</div>
         </div>
       </div>
 
@@ -87,30 +83,46 @@
       </div>
 
       <div class="stick" id="stick"></div>
-      <button class="action" id="actionBtn" aria-label="Bomb">
-        <div class="big">💣</div>
-        <div class="label">Bomb</div>
+      <button class="action" id="actionBtn" aria-label="Action">
+        <div class="big" id="actionIcon">💣</div>
+        <div class="label" id="actionLabel">Bomb</div>
         <div class="cost" id="costHUD">kostar ⭐5</div>
       </button>
+      <button class="mute" id="muteBtn">🔊</button>
+      <audio id="bgMusic" src="soundtrack.mp3" preload="auto" loop></audio>
+      <audio id="sBoss" src="boss.mp3" preload="auto" loop></audio>
     </div>
   </main>
 </div>
 
 <script>
-// ===== Layout & safe areas =====
+// ===== Helpers: image loading with fallback to emoji drawing
+const images = {};
+function loadImage(key, src){
+  return new Promise(res=>{
+    const img = new Image();
+    img.onload = ()=>{ images[key]=img; res(true); };
+    img.onerror = ()=>{ res(false); };
+    img.src = src;
+  });
+}
+
+// ===== Layout
 const stage = document.getElementById('stage');
 const cv = document.getElementById('cv');
 const hudBox = document.getElementById('hudBox');
 const stick = document.getElementById('stick');
 const actionBtn = document.getElementById('actionBtn');
+const actionIcon = document.getElementById('actionIcon');
+const actionLabel = document.getElementById('actionLabel');
 const costHUD = document.getElementById('costHUD');
+const muteBtn = document.getElementById('muteBtn');
 
 function layout(){
   const vw = window.visualViewport ? window.visualViewport.width : innerWidth;
   const vh = window.visualViewport ? window.visualViewport.height : innerHeight;
   const isLandscape = vw > vh;
   const pad = 12;
-  // joystick/action size from shorter side
   const joy = Math.round(Math.max(110, Math.min(140, Math.min(vw, vh)*0.18)));
   stick.style.width = stick.style.height = joy + 'px';
   const act = Math.round(joy*0.95);
@@ -125,38 +137,33 @@ function layout(){
     left = Math.round((vw - (side + gutterL + gutterR))/2 + gutterL);
     top  = Math.round((vh - side)/2);
     position(cv,left,top,side,side);
-    // left joystick center, right action center
     stick.style.left = Math.round(left - joy - 16) + 'px';
     stick.style.top  = Math.round(top + (side - joy)/2) + 'px';
     actionBtn.style.left = Math.round(left + side + 16) + 'px';
     actionBtn.style.top  = Math.round(top + (side - act)/2) + 'px';
   }else{
-    // portrait: reserve bottom gutter for joystick/action side by side
     side = Math.min(vw - pad*2, vh - pad*2 - (joy + 28));
     side = Math.max(320, Math.min(side, 1100));
     left = Math.round((vw - side)/2);
     top  = Math.round((vh - (side + joy + 20))/2);
     position(cv,left,top,side,side);
-    // joystick left under, action right under
     const underY = Math.round(top + side + 8);
     stick.style.left = Math.round(left + side*0.5 - joy - 10) + 'px';
     stick.style.top  = underY + 'px';
     actionBtn.style.left = Math.round(left + side*0.5 + 10) + 'px';
     actionBtn.style.top  = underY + 'px';
   }
-  // HUD & overlays sized to canvas rect
   const r = cv.getBoundingClientRect();
   positionBox('hudBox', r); positionBox('startOv', r); positionBox('overOv', r);
+  // mute button near actionBtn but inside canvas rect
+  muteBtn.style.left = Math.round(r.right - 60) + 'px';
+  muteBtn.style.top  = Math.round(r.bottom - 44) + 'px';
 }
-
 function position(el,x,y,w,h){ el.style.left=x+'px'; el.style.top=y+'px'; el.style.width=w+'px'; el.style.height=h+'px'; }
 function positionBox(id, r){ const el=document.getElementById(id); el.style.left=r.left+'px'; el.style.top=r.top+'px'; el.style.width=r.width+'px'; el.style.height=r.height+'px'; }
+addEventListener('resize',layout); if (window.visualViewport) visualViewport.addEventListener('resize',layout);
 
-addEventListener('resize',layout);
-if (window.visualViewport) visualViewport.addEventListener('resize',layout);
-layout();
-
-// ===== HUD & State =====
+// ===== HUD & State
 const HUD = {
   score: document.getElementById('scoreHUD'),
   bank: document.getElementById('bankHUD'),
@@ -169,43 +176,79 @@ const HUD = {
   modeSelStart: document.getElementById('modeSelStart'),
   modePill: document.getElementById('modePill')
 };
-
-const STORAGE_KEY='emoji_dodge_v27_best';
+const STORAGE_KEY='emoji_dodge_v32_best';
 let best = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
 
 // Themes
 const THEMES={
-  default:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'],
-  spooky:['👻','💀','🕷️','🕸️','🧟','🧛','🦇','🔮'],
-  food:['🍔','🍕','🌮','🍟','🍩','🍗','🍰','🍣'],
-  sports:['🏀','🏈','⚽','🎯','🎱','🏐','🥊','🎾','🏸'],
-  flags:['🏴‍☠️','🚩','🇸🇪','🇯🇵','🇺🇸','🇧🇷','🇪🇸','🇩🇪','🇬🇧']
+  classicHaz:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'],
+  fun:['👻','💀','🕷️','🕸️','🍔','🍕','🌮','🍟','🏀','🎯','🎱']
 };
 
 // Audio + Haptics
 const AC = window.AudioContext || window.webkitAudioContext;
 let actx=null, muted=false;
+const music = document.getElementById('bgMusic');
+const musicBoss = document.getElementById('sBoss');
 function ensureAudio(){ if(!actx) actx=new AC(); }
 function tone(f=600,d=0.07,t='sine',v=0.025){ if(muted||!actx) return; const o=actx.createOscillator(); const g=actx.createGain(); o.type=t;o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+d); }
-function vibrate(p){ if(navigator.vibrate) navigator.vibrate(p); else shakeFallback(); }
-function shakeFallback(){ stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); tone(120,0.04,'sine',0.015); }
+function vibrate(p){ if(navigator.vibrate) navigator.vibrate(p); }
 function boom(){ tone(80,0.25,'sawtooth',0.05); vibrate([20,30,40]); }
 function bling(){ tone(900,0.08,'triangle',0.045); vibrate(15); }
 function stinger(){ tone(520,0.12,'square',0.04); setTimeout(()=>tone(720,0.12,'square',0.04),120); vibrate([10,30,10]); }
 function heartBeat(){ tone(200,0.05,'sine',0.03); setTimeout(()=>tone(160,0.05,'sine',0.03),90); vibrate(10); }
-function wallBump(){ tone(280,0.03,'square',0.02); vibrate(8); }
+
+// Voice pack
+const dogeVoices=[
+  'assets/to_the_moon.mp3',
+  'assets/hodl.mp3',
+  'assets/buy_the_dip.mp3'
+];
+function playVoice(){
+  if(muted) return;
+  const pick = dogeVoices[Math.floor(Math.random()*dogeVoices.length)];
+  const a = new Audio(pick);
+  a.volume = 0.9;
+  a.play().catch(()=>{});
+}
+function playRocket(){
+  if(muted) return;
+  // optional rocket sound if present
+  const a = new Audio('assets/rocket_whoosh.mp3');
+  a.volume = 0.9;
+  a.play().catch(()=>{});
+}
+
+muteBtn.addEventListener('click', ()=>{
+  muted = !muted;
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+  if(muted){ music.pause(); musicBoss.pause(); } else { tryPlayMusic(); }
+}, {passive:true});
+
+function tryPlayMusic(){
+  if(muted) return;
+  const el = music; // default track
+  el.volume = 0.7;
+  el.play().catch(()=>{});
+}
 
 // Game state
-let running=false, mode='collect', theme='default';
+let running=false, mode='collect', theme='classic'; // theme: classic | doge
 let t=0,last=0,dt=0,score=0,gravity=1,warp=1;
-let hazards=[],goods=[],particles=[];
-let autoEventTimer=0;
-const fx={blur:0,blackout:0};
-const player={x:cv.width/2,y:cv.height*0.78,r:26,spd:370,emoji:'😎',evo:0};
+let hazards=[],goods=[],coins=[],particles=[];
+const fx={};
+const player={x:cv.width/2,y:cv.height*0.78,r:26,spd:370,emoji:'😎'};
 
-// Currency & power
+// Classic power
 let bank=0, bombCooldown=0;
 const BOMB_COST=5, BOMB_COOLDOWN_S=3;
+
+// Doge power
+let dBank=0, moonReady=false, moonActive=0, shield=0;
+const MOON_COST=5, MOON_TIME=2.0, SHIELD_TIME=3.0;
+
+// Images
+let dogeImg=null, coinImg=null;
 
 // Clamp
 const playfieldMargin = 24;
@@ -214,39 +257,50 @@ function clampPlayer(){
   const maxX = cv.width - playfieldMargin - player.r;
   const minY = playfieldMargin + player.r;
   const maxY = cv.height - playfieldMargin - player.r;
-  let clamped=false;
-  if(player.x < minX){ player.x = minX; clamped=true; }
-  if(player.x > maxX){ player.x = maxX; clamped=true; }
-  if(player.y < minY){ player.y = minY; clamped=true; }
-  if(player.y > maxY){ player.y = maxY; clamped=true; }
-  if(clamped) wallBump();
+  if(player.x < minX) player.x = minX;
+  if(player.x > maxX) player.x = maxX;
+  if(player.y < minY) player.y = minY;
+  if(player.y > maxY) player.y = maxY;
 }
 
 // Input
-const keys={ArrowUp:0,ArrowDown:0,ArrowLeft:0,ArrowRight:0,KeyW:0,KeyA:0,KeyS:0,KeyD:0,KeyM:0,Space:0};
-addEventListener('keydown',e=>{ if(e.code in keys) keys[e.code]=1; if(e.code==='KeyM') muted=!muted; if(e.code==='Space') tryBomb(); });
+const keys={ArrowUp:0,ArrowDown:0,ArrowLeft:0,ArrowRight:0,KeyW:0,KeyA:0,KeyS:0,KeyD:0,Space:0};
+addEventListener('keydown',e=>{ if(e.code in keys) keys[e.code]=1; if(e.code==='Space') doAction(); });
 addEventListener('keyup',e=>{ if(e.code in keys) keys[e.code]=0; });
 
-// Mode pill
 HUD.modePill.addEventListener('click', ()=>{
-  mode = (mode==='collect') ? 'dodge' : 'collect';
-  HUD.modePill.textContent = (mode==='collect') ? '⭐ Samla ⟳' : '🚫 Undvik ⟳';
-  stinger();
+  toast(theme==='doge'?'Doge World 🐶🪙':'Classic');
 }, {passive:true});
 
 // Start/Retry/Menu
-document.getElementById('startBtn').addEventListener('click', (e)=>{ e.preventDefault(); ensureAudio(); setOptionsFromMenu(); start(); }, {passive:false});
+document.getElementById('startBtn').addEventListener('click', async (e)=>{ e.preventDefault(); ensureAudio(); setOptionsFromMenu(); await preloadAssets(); start(); }, {passive:false});
 document.getElementById('retryBtn').addEventListener('click', (e)=>{ e.preventDefault(); ensureAudio(); start(); }, {passive:false});
 document.getElementById('menuBtn').addEventListener('click', (e)=>{ e.preventDefault(); HUD.over.classList.remove('show'); HUD.start.classList.add('show'); }, {passive:false});
-cv.addEventListener('click', ()=>{ if(!running){ ensureAudio(); setOptionsFromMenu(); start(); } }, {passive:true});
-
-// Action button
-actionBtn.addEventListener('click', (e)=>{ e.preventDefault(); tryBomb(); }, {passive:false});
+cv.addEventListener('click', async ()=>{ if(!running){ ensureAudio(); setOptionsFromMenu(); await preloadAssets(); start(); } }, {passive:true});
 
 function setOptionsFromMenu(){
   theme = HUD.themeSel.value;
   mode  = HUD.modeSelStart.value;
-  HUD.modePill.textContent = (mode==='collect') ? '⭐ Samla ⟳' : '🚫 Undvik ⟳';
+  HUD.modePill.textContent = (theme==='doge'?'Doge World 🐶🪙':'Classic') + ' · ' + (mode==='collect'?'⭐ Samla':'🚫 Undvik');
+  setupActionUI();
+}
+
+function setupActionUI(){
+  if(theme==='doge'){
+    actionIcon.textContent='🚀';
+    actionLabel.textContent='Moon';
+    costHUD.textContent='kostar 🪙'+MOON_COST;
+  }else{
+    actionIcon.textContent='💣';
+    actionLabel.textContent='Bomb';
+    costHUD.textContent='kostar ⭐'+BOMB_COST;
+  }
+}
+
+async function preloadAssets(){
+  // Try loading images (fallback to emoji if fail)
+  const d1 = await loadImage('doge','assets/doge.png'); if(d1) dogeImg=images['doge'];
+  const d2 = await loadImage('coin','assets/dogecoin.png'); if(d2) coinImg=images['coin'];
 }
 
 // Joystick
@@ -258,14 +312,22 @@ let stickActive=false, stickStart=null, stickVec={x:0,y:0};
   ev.preventDefault();
 },{passive:false}));
 
+actionBtn.addEventListener('click', (e)=>{ e.preventDefault(); doAction(); }, {passive:false});
+
 // Core
+HUD.start.classList.add('show');
+HUD.score.textContent='⭐ 0'; HUD.bank.textContent='💰 0';
+layout();
+
 function start(){
-  hazards.length=0; goods.length=0; particles.length=0;
-  score=0; bank=0; t=0; gravity=1; warp=1; fx.blur=0; fx.blackout=0; bombCooldown=0;
-  player.x=cv.width/2; player.y=cv.height*0.78; player.evo=0; player.emoji='😎';
-  running=true; last=0;
+  hazards.length=0; goods.length=0; coins.length=0; particles.length=0;
+  score=0; t=0; gravity=1; warp=1; last=0;
+  player.x=cv.width/2; player.y=cv.height*0.78; player.emoji=(theme==='doge'?'🐶':'😎');
+  bank=0; bombCooldown=0; dBank=0; moonReady=false; moonActive=0; shield=0;
+  running=true;
   HUD.start.classList.remove('show'); HUD.over.classList.remove('show');
-  updateBankHUD(); updateActionState();
+  HUD.bank.textContent = theme==='doge' ? '🪙 0' : '💰 0';
+  tryPlayMusic();
   requestAnimationFrame(loop);
 }
 
@@ -279,79 +341,142 @@ function gameOver(){
 }
 
 function spawnHazard(){
-  const arr=THEMES[theme];
+  const arr = theme==='classic' ? THEMES.classicHaz : THEMES.fun;
   const baseR=18 + Math.random()*32;
   const speedScale=(baseR<22?1.45:1.0);
   hazards.push({ x:Math.random()*(cv.width-2*playfieldMargin)+playfieldMargin, y:-40, r:baseR, vy:(150+Math.random()*220+Math.min(280,score*0.6))*speedScale, vx:(Math.random()-0.5)*90, rot:Math.random()*Math.PI*2, spin:(Math.random()-0.5)*2, emoji:arr[Math.floor(Math.random()*arr.length)] });
 }
 function spawnGood(){ goods.push({ x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin), y:-30, r:22, vy:150+Math.random()*120, emoji:'⭐', pulse:Math.random()*Math.PI*2 }); }
+function spawnCoin(){ coins.push({ x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin), y:-30, r:20, vy:150+Math.random()*120, emoji:'🪙', pulse:Math.random()*Math.PI*2 }); }
 function addParticles(x,y,n=14,color='#fff'){ for(let i=0;i<n;i++){ particles.push({x,y,vx:(Math.random()-0.5)*230,vy:(Math.random()-0.5)*230,life:0.7+Math.random()*0.5,color}); } }
 
 function toast(txt){ HUD.event.textContent=txt; HUD.event.style.opacity=1; setTimeout(()=>HUD.event.style.opacity=0,1000); }
 
-function triggerEvent(type){
-  stinger();
-  if(type==='flip'){ gravity*=-1; toast('🌀 Gravity Flip'); }
-  if(type==='big'){ hazards.forEach(h=>h.r*=1.7); toast('🧠 Everything Big'); }
-  if(type==='blur'){ toast('🌫️ Blur Mode'); setTimeout(()=>{}, 0); }
-  if(type==='banana'){ for(let i=0;i<14;i++) hazards.push({x:Math.random()*(cv.width-2*playfieldMargin)+playfieldMargin,y:-40,r:22+Math.random()*10,vy:200+Math.random()*180,vx:(Math.random()-0.5)*40,rot:0,spin:(Math.random()-0.5)*2,emoji:'🍌'}); toast('🍌 Banana Rain'); }
-  if(type==='warp'){ warp = (warp===1?1.55:1); toast(warp>1?'⏱️ Speed Up':'⏱️ Normal'); }
-  if(type==='blackout'){ toast('🌑 Blackout'); }
+function doAction(){ if(theme==='doge') moon(); else bomb(); }
+
+function bomb(){
+  if(!running) return;
+  const ready = bank>=BOMB_COST && bombCooldown<=0;
+  if(!ready) { stinger(); return; }
+  bank -= BOMB_COST;
+  let cleared=hazards.length;
+  hazards.forEach(h=> addParticles(h.x,h.y,22,'#ffb3b3'));
+  hazards.length=0;
+  score += cleared*10;
+  bombCooldown=BOMB_COOLDOWN_S;
+  updateBanks();
+  toast('💣 Bomb!');
+  tone(90,0.25,'sawtooth',0.08);
 }
-function autoEvents(dt){ autoEventTimer+=dt; if(autoEventTimer>=28){ autoEventTimer=0; const arr=['flip','big','blur','banana','warp','blackout']; triggerEvent(arr[Math.floor(Math.random()*arr.length)]); } }
-function evolve(elapsed){ const st=Math.floor(elapsed/24); if(st!==player.evo){ player.evo=st; player.emoji = st>=3?'🦄':st==2?'🤖':'🤠'; toast('⭐ Evolverad!'); } }
+
+function moon(){
+  if(!running) return;
+  const ready = dBank>=MOON_COST && moonActive<=0;
+  if(!ready){ stinger(); return; }
+  dBank -= MOON_COST;
+  moonActive = MOON_TIME;
+  playVoice();
+  setTimeout(playRocket, 400);
+  toast('🚀 To The Moon!');
+  vibrate([30,40,30]);
+  updateBanks();
+}
+
+function landMoon(){
+  // radial clear near player + shield
+  const radius = 160;
+  let kept=[];
+  hazards.forEach(h=>{
+    const d=Math.hypot(h.x-player.x, h.y-player.y);
+    if(d<radius){ addParticles(h.x,h.y,18,'#ffd166'); score+=10; } else kept.push(h);
+  });
+  hazards = kept;
+  shield = SHIELD_TIME;
+  toast('🛡 HODL!');
+}
+
+function updateBanks(){
+  HUD.bank.textContent = theme==='doge' ? ('🪙 '+dBank) : ('💰 '+bank);
+  if(theme==='doge'){
+    const ready=dBank>=MOON_COST && moonActive<=0;
+    actionBtn.classList.toggle('disabled', !ready);
+    costHUD.textContent = ready ? 'redo!' : ('kostar 🪙'+MOON_COST);
+  }else{
+    const ready=bank>=BOMB_COST && bombCooldown<=0;
+    actionBtn.classList.toggle('disabled', !ready);
+    costHUD.textContent = bombCooldown>0 ? ('cooldown '+Math.ceil(bombCooldown)+'s') : ('kostar ⭐'+BOMB_COST);
+  }
+}
 
 function loop(now){
   if(!running) return;
   requestAnimationFrame(loop);
-  if(!last) last=now; dt=((now-last)/1000)*warp; last=now;
+  if(!last) last=now; dt=(now-last)/1000; last=now;
 
-  if(bombCooldown>0){ bombCooldown=Math.max(0, bombCooldown-dt); if(bombCooldown===0) updateActionState(); }
+  // timers
+  if(theme==='classic'){ if(bombCooldown>0){ bombCooldown=Math.max(0,bombCooldown-dt); if(bombCooldown===0) updateBanks(); } }
+  if(theme==='doge'){
+    if(moonActive>0){ moonActive=Math.max(0, moonActive-dt); player.y -= 500*dt; if(moonActive===0) landMoon(); }
+    if(shield>0) shield=Math.max(0, shield-dt);
+  }
 
-  autoEvents(dt);
-  evolve(score/4);
-
-  // spawn pace
+  // pacing
   const hazardInt=Math.max(0.16, 0.7 - score*0.0025);
   const goodInt=Math.max(0.68, 1.45 - score*0.0015);
   t+=dt;
   if(t % hazardInt < dt) spawnHazard();
-  if(mode==='collect' && t % goodInt < dt) spawnGood();
+  if(mode==='collect' && t % goodInt < dt){
+    if(theme==='doge' && Math.random()<0.35) spawnCoin(); else spawnGood();
+  }
 
   // input
-  const up=keys.ArrowUp||keys.KeyW, down=keys.ArrowDown||keys.KeyS, left=keys.ArrowLeft||keys.KeyA, right=keys.ArrowRight||keys.KeyD;
-  let ix=(right?1:0)-(left?1:0), iy=(down?1:0)-(up?1:0);
+  let ix=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0);
+  let iy=(keys.ArrowDown||keys.KeyS?1:0)-(keys.ArrowUp||keys.KeyW?1:0);
   if(stickActive){ ix += stickVec.x*1.2; iy += stickVec.y*1.2; }
   const mag=Math.hypot(ix,iy)||1;
-  player.x += (ix/mag)*player.spd*dt;
-  player.y += (iy/mag)*player.spd*dt;
-  player.y += 100*gravity*dt;
+  if(moonActive<=0){ // normal control unless moon
+    player.x += (ix/mag)*player.spd*dt;
+    player.y += (iy/mag)*player.spd*dt;
+    player.y += 100*dt; // gravity
+  }
   clampPlayer();
 
   // hazards
-  let near=false;
   for(let i=hazards.length-1;i>=0;i--){
     const h=hazards[i];
-    h.y += h.vy*dt*gravity; h.x += h.vx*dt; h.rot += h.spin*dt;
+    h.y += h.vy*dt; h.x += h.vx*dt; h.rot += h.spin*dt;
     if(h.x<h.r+playfieldMargin || h.x>cv.width-h.r-playfieldMargin) h.vx*=-1;
     const d2 = (player.x-h.x)**2+(player.y-h.y)**2;
-    if(d2 < (player.r+h.r+30)**2 && d2 > (player.r+h.r)**2) near=true;
-    if(d2 <= (player.r+h.r)**2){ return gameOver(); }
-    if((gravity>0 && h.y-h.r>cv.height+60) || (gravity<0 && h.y+h.r<-60)) hazards.splice(i,1);
+    const hit = d2 <= (player.r+h.r)**2;
+    if(hit){
+      if(theme==='doge' && (moonActive>0 || shield>0)){
+        if(shield>0){ shield=0; toast('💥 HODL hit'); }
+        hazards.splice(i,1);
+        continue;
+      }
+      return gameOver();
+    }
+    if(h.y-h.r>cv.height+60) hazards.splice(i,1);
   }
-  if(near && Math.random()<0.08) heartBeat();
 
   // goods
-  if(mode==='collect'){
-    for(let i=goods.length-1;i>=0;i--){
-      const g=goods[i];
-      g.y += g.vy*dt*gravity; g.pulse+=dt*3;
-      if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){
-        score+=25; bank+=1; bling(); updateBankHUD(); updateActionState();
-        addParticles(g.x,g.y,20,'#ffd166'); goods.splice(i,1); continue;
-      }
-      if((gravity>0 && g.y-g.r>cv.height+40) || (gravity<0 && g.y+g.r<-40)) goods.splice(i,1);
+  for(let i=goods.length-1;i>=0;i--){
+    const g=goods[i];
+    g.y += g.vy*dt; g.pulse+=dt*3;
+    if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){
+      score+=25; bank+= (theme==='classic'?1:0); bling(); addParticles(g.x,g.y,20,'#ffd166'); goods.splice(i,1); updateBanks(); continue;
     }
+    if(g.y-g.r>cv.height+40) goods.splice(i,1);
+  }
+
+  // coins
+  for(let i=coins.length-1;i>=0;i--){
+    const c=coins[i];
+    c.y += c.vy*dt; c.pulse+=dt*3;
+    if((player.x-c.x)**2+(player.y-c.y)**2 <= (player.r+c.r)**2){
+      score+=30; dBank+=1; bling(); addParticles(c.x,c.y,20,'#ffe28a'); coins.splice(i,1); updateBanks(); toast('to the moon!'); continue;
+    }
+    if(c.y-c.r>cv.height+40) coins.splice(i,1);
   }
 
   // particles
@@ -362,12 +487,11 @@ function loop(now){
 
   score += dt*4;
   HUD.score.textContent='⭐ '+Math.floor(score);
-
   draw();
 }
 
 function draw(){
-  const ctx = cv.getContext('2d');
+  const ctx=cv.getContext('2d');
   ctx.clearRect(0,0,cv.width,cv.height);
   // grid
   ctx.save(); ctx.globalAlpha=0.05; ctx.strokeStyle='#cbd5ff';
@@ -375,6 +499,12 @@ function draw(){
   for(let gx=playfieldMargin;gx<cv.width-playfieldMargin;gx+=grid){ ctx.moveTo(gx,playfieldMargin); ctx.lineTo(gx,cv.height-playfieldMargin); }
   for(let gy=playfieldMargin;gy<cv.height-playfieldMargin;gy+=grid){ ctx.moveTo(playfieldMargin,gy); ctx.lineTo(cv.width-playfieldMargin,gy); }
   ctx.stroke(); ctx.restore();
+
+  // shield aura
+  if(theme==='doge' && shield>0){
+    ctx.save(); ctx.globalAlpha=0.18; ctx.strokeStyle='#ffd166'; ctx.lineWidth=12;
+    ctx.beginPath(); ctx.arc(player.x,player.y, player.r+18, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+  }
 
   // particles
   particles.forEach(p=>{ ctx.save(); ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
@@ -387,6 +517,21 @@ function draw(){
     drawEmoji('⭐', g.x,g.y, g.r*2+4*Math.sin(g.pulse), 0, '#ffd166');
   });
 
+  // coins (use image if available)
+  coins.forEach(cn=>{
+    const pulse=0.35+0.18*Math.sin(cn.pulse*2);
+    ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffe28a'; ctx.lineWidth=10;
+    ctx.beginPath(); ctx.arc(cn.x,cn.y,cn.r+10,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    if(coinImg){
+      ctx.save();
+      ctx.translate(cn.x, cn.y);
+      ctx.drawImage(coinImg, -cn.r, -cn.r, cn.r*2, cn.r*2);
+      ctx.restore();
+    }else{
+      drawEmoji('🪙', cn.x,cn.y, cn.r*2+2*Math.sin(cn.pulse), 0, '#ffe28a');
+    }
+  });
+
   // hazards
   hazards.forEach(h=>{
     ctx.save(); ctx.globalAlpha=0.38; ctx.strokeStyle='#ff6b6b'; ctx.lineWidth=10;
@@ -394,7 +539,15 @@ function draw(){
     drawEmoji(h.emoji, h.x,h.y, h.r*2, h.rot, '#ff6b6b');
   });
 
-  drawEmoji(player.emoji, player.x, player.y, player.r*2, 0, '#f1f5ff');
+  // player (use doge image in doge theme)
+  if(theme==='doge' && dogeImg){
+    const s = player.r*2;
+    ctx.save(); ctx.translate(player.x, player.y);
+    ctx.drawImage(dogeImg, -s/2, -s/2, s, s);
+    ctx.restore();
+  }else{
+    drawEmoji(player.emoji, player.x, player.y, player.r*2, 0, '#f1f5ff');
+  }
 }
 
 function drawEmoji(e,x,y,size,rot,glow){
@@ -406,40 +559,6 @@ function drawEmoji(e,x,y,size,rot,glow){
   ctx.fillText(e,0,0);
   ctx.restore();
 }
-
-// ===== Bomb Power =====
-function tryBomb(){
-  if(!running) return;
-  if(bombCooldown>0 || bank < BOMB_COST) { shakeFallback(); return; }
-  bank -= BOMB_COST; updateBankHUD(); updateActionState();
-  // clear hazards with VFX & points
-  let cleared=0;
-  hazards.forEach(h=>{ addParticles(h.x,h.y,24,'#ffb3b3'); });
-  cleared = hazards.length;
-  hazards.length=0;
-  tone(80,0.25,'sawtooth',0.08); tone(120,0.2,'sawtooth',0.06); vibrate([40,60,40]);
-  toast('💣 Mega Bomb!');
-  score += cleared * 10;
-  bombCooldown = BOMB_COOLDOWN_S;
-  updateActionState();
-}
-
-function updateBankHUD(){ HUD.bank.textContent = '💰 '+bank; }
-function updateActionState(){
-  const ready = bank >= BOMB_COST && bombCooldown===0;
-  actionBtn.classList.toggle('disabled', !ready);
-  if(bombCooldown>0){
-    costHUD.textContent = 'cooldown ' + Math.ceil(bombCooldown)+'s';
-  } else {
-    costHUD.textContent = 'kostar ⭐'+BOMB_COST;
-  }
-}
-
-// ===== Start state =====
-HUD.start.classList.add('show');
-HUD.bank.textContent = '💰 0';
-HUD.score.textContent = '⭐ 0';
-layout();
 </script>
 </body>
 </html>
