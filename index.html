@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v3.4</title>
+<title>Emoji Dodge – v3.4.1</title>
 <meta name="theme-color" content="#0b0f1a" />
 <style>
   :root{
@@ -33,7 +33,7 @@
   .stick{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none}
   .stick::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
-  .action{position:absolute;width:118px;height:118px;border-radius:22px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:manipulation; transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease}
+  .action{position:absolute;width:118px;height:118px;border-radius:22px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:manipulation; transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease}
   .action .big{font-size:36px}
   .action:active{ transform: translateY(1px) scale(.99) }
   .action.disabled{opacity:.45;filter:grayscale(0.2); box-shadow:none}
@@ -64,7 +64,7 @@
 
       <div class="overlay" id="startOv">
         <div class="card">
-          <h1 class="title">Emoji Dodge v3.4</h1>
+          <h1 class="title">Emoji Dodge v3.4.1</h1>
           <p class="sub"><b>Classic</b>: ⭐ = poäng, samla 💣 x3 för bomb. <b>Doge</b>: 🪙 = poäng, samla 🌙 x3 för raket.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn" id="startBtn">▶ Starta</button>
@@ -150,7 +150,7 @@ addEventListener('resize',layout); if (window.visualViewport) visualViewport.add
 
 // ===== HUD & State
 const HUD={ score:scoreHUD, bank:bankHUD, event:eventHUD, start:startOv, over:overOv, finalScore:finalScore, finalBest:finalBest, themeSel:themeSel, modeSelStart:modeSelStart, modePill:modePill };
-const STORAGE_KEY='emoji_dodge_v34_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
+const STORAGE_KEY='emoji_dodge_v341_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
 
 const THEMES={ classicHaz:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'], fun:['👻','💀','🕷️','🕸️','🍔','🍕','🌮','🍟','🏀','🎯','🎱'] };
 
@@ -158,9 +158,9 @@ const music=bgMusic, musicBoss=sBoss;
 function tryPlayMusic(){ if(muted) return; music.volume=0.7; music.play().catch(()=>{}); }
 muteBtn.addEventListener('click', ()=>{ muted=!muted; muteBtn.textContent=muted?'🔇':'🔊'; if(muted){ music.pause(); musicBoss.pause(); } else tryPlayMusic(); }, {passive:true});
 
-// Voices
-const dogeVoices=['assets/to_the_moon.mp3','assets/hodl.mp3','assets/buy_the_dip.mp3'];
-function playVoice(){ if(muted) return; const pick=dogeVoices[Math.floor(Math.random()*dogeVoices.length)]; const a=new Audio(pick); a.volume=0.9; a.play().catch(()=>{}); }
+// Voices (split by type)
+function playMoonVoice(){ if(muted) return; const a=new Audio('assets/to_the_moon.mp3'); a.volume=0.95; a.play().catch(()=>{}); }
+function playCoinVoice(){ if(muted) return; const pick=Math.random()<0.5 ? 'assets/hodl.mp3' : 'assets/buy_the_dip.mp3'; const a=new Audio(pick); a.volume=0.9; a.play().catch(()=>{}); }
 function playRocket(){ if(muted) return; const a=new Audio('assets/rocket_whoosh.mp3'); a.volume=0.9; a.play().catch(()=>{}); }
 
 // Game state
@@ -175,8 +175,8 @@ let dogeImg=null, coinImg=null;
 const playfieldMargin=24;
 
 // Morph (Classic only)
-let classicStars=0, morph='base'; // base -> unicorn
-let unicornTimer=0; // controls sweep interval
+let classicStars=0, morph='base';
+let unicornTimer=0;
 
 // Clamp
 function clampPlayer(){ const minX=playfieldMargin+player.r, maxX=cv.width-playfieldMargin-player.r, minY=playfieldMargin+player.r, maxY=cv.height-playfieldMargin-player.r; if(player.x<minX) player.x=minX; if(player.x>maxX) player.x=maxX; if(player.y<minY) player.y=minY; if(player.y>maxY) player.y=maxY; }
@@ -193,7 +193,7 @@ menuBtn.addEventListener('click', e=>{ e.preventDefault(); HUD.over.classList.re
 cv.addEventListener('click', async ()=>{ if(!running){ ensureAudio(); setOptionsFromMenu(); await preloadAssets(); start(); } }, {passive:true});
 
 function setOptionsFromMenu(){ theme=HUD.themeSel.value; mode=HUD.modeSelStart.value; HUD.modePill.textContent=(theme==='doge'?'Doge World 🐶🪙':'Classic')+' · '+(mode==='collect'?'⭐ Samla':'🚫 Undvik'); setupActionUI(); }
-function setupActionUI(){ if(theme==='doge'){ actionIcon.textContent='🚀'; } else { actionIcon.textContent='💣'; } }
+function setupActionUI(){ actionIcon.textContent = theme==='doge' ? '🚀' : '💣'; }
 
 async function preloadAssets(){ const d1=await loadImage('doge','assets/doge.png'); if(d1) dogeImg=images['doge']; const d2=await loadImage('coin','assets/dogecoin.png'); if(d2) coinImg=images['coin']; }
 
@@ -212,7 +212,6 @@ actionBtn.addEventListener('click', e=>{ e.preventDefault(); doAction(); }, {pas
 HUD.start.classList.add('show'); HUD.score.textContent='⭐ 0'; HUD.bank.textContent='—'; layout();
 
 function start(){
-  // reset
   hazards.length=0; stars.length=0; bombParts.length=0; coins.length=0; moons.length=0; particles.length=0; sweeps.length=0;
   score=0; t=0; last=0;
   player.x=cv.width/2; player.y=cv.height*0.78; player.emoji=(theme==='doge'?'🐶':'😀');
@@ -223,10 +222,7 @@ function start(){
   tryPlayMusic(); requestAnimationFrame(loop);
 }
 
-function updateHUDTop(){
-  if(theme==='classic'){ HUD.bank.textContent = '💣 '+bombCount+'/3'; }
-  else { HUD.bank.textContent = '🌙 '+moonCount+'/3'; }
-}
+function updateHUDTop(){ HUD.bank.textContent = theme==='classic' ? ('💣 '+bombCount+'/3') : ('🌙 '+moonCount+'/3'); }
 
 function gameOver(){ running=false; const s=Math.floor(score); HUD.finalScore.textContent=s; if(s>best){ best=s; localStorage.setItem(STORAGE_KEY,String(best)); } HUD.finalBest.textContent=best; HUD.over.classList.add('show'); }
 
@@ -244,26 +240,19 @@ function toast(txt){ eventHUD.textContent=txt; eventHUD.style.opacity=1; setTime
 // Specials
 function doAction(){ if(theme==='doge') rocket(); else bomb(); }
 
-function bomb(){
-  if(!running || !bombArmed) return;
-  bombArmed=false; bombCount=0; updateHUDTop();
-  // clear all hazards + particles
-  hazards.forEach(h=>addParticles(h.x,h.y,22,'#ffb3b3')); hazards.length=0; toast('💣 BOOM!'); vibrate([30,50,30]);
-  actionBtn.classList.remove('ready');
-}
+function bomb(){ if(!running || !bombArmed) return; bombArmed=false; bombCount=0; updateHUDTop(); hazards.forEach(h=>addParticles(h.x,h.y,22,'#ffb3b3')); hazards.length=0; toast('💣'); vibrate([30,50,30]); actionBtn.classList.remove('ready'); }
 
 function rocket(){
   if(!running || !moonArmed || moonActive>0) return;
   moonArmed=false; moonCount=0; updateHUDTop();
   moonActive=MOON_TIME; invul=0;
-  // voice + rocket sfx
-  playVoice(); setTimeout(()=>{ try{ playRocket(); }catch(e){} }, 350);
+  // no voice here; only rocket sfx if present
+  setTimeout(()=>{ try{ playRocket(); }catch(e){} }, 120);
   toast('🚀'); vibrate([30,40,30]);
   actionBtn.classList.remove('ready');
 }
 
 function landRocket(){
-  // radial clear + shield + spawn grace
   const radius=180; let kept=[];
   hazards.forEach(h=>{ const d=Math.hypot(h.x-player.x,h.y-player.y); if(d<radius){ addParticles(h.x,h.y,18,'#ffd166'); score+=10; } else kept.push(h); });
   hazards=kept;
@@ -277,7 +266,7 @@ function loop(now){
 
   // timers (doge flight/shield)
   if(theme==='doge'){
-    const topStop=playfieldMargin+80+player.r;
+    const topStop=24+80+player.r;
     if(moonActive>0){
       const ix=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0) + (stickActive?stickVec.x*1.2:0);
       player.x += ix*player.spd*dt; player.y -= 520*dt*(0.6+0.4*Math.cos((moonActive/MOON_TIME)*Math.PI));
@@ -295,7 +284,7 @@ function loop(now){
   if(spawnGrace>0) hazardInt*=1.7;
   const starInt=Math.max(0.68, 1.45 - score*0.0015);
   const coinInt=starInt;
-  const specialInt=1.8; // how often to try spawn special (bombparts or moons)
+  const specialInt=1.8;
   t+=dt;
   if(t % hazardInt < dt) spawnHazard();
   if(mode==='collect'){
@@ -340,7 +329,6 @@ function loop(now){
     const g=stars[i]; g.y += g.vy*dt; g.pulse+=dt*3;
     if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){
       score+=25; classicStars+=1; addParticles(g.x,g.y,20,'#ffd166'); stars.splice(i,1);
-      // morph progression
       if(theme==='classic' && morph==='base' && classicStars>=5){ morph='unicorn'; toast('🦄'); }
       continue;
     }
@@ -358,22 +346,23 @@ function loop(now){
     if(b.y-b.r>cv.height+40) bombParts.splice(i,1);
   }
 
-  // coins
+  // coins (HODL/BUY THE DIP only)
   for(let i=coins.length-1;i>=0;i--){
     const c=coins[i]; c.y += c.vy*dt; c.pulse+=dt*3;
     if((player.x-c.x)**2+(player.y-c.y)**2 <= (player.r+c.r)**2){
       score+=30; addParticles(c.x,c.y,20,'#ffe28a'); coins.splice(i,1);
-      if(!muted) playVoice(); // play meme voice on pickup
+      playCoinVoice();
       continue;
     }
     if(c.y-c.r>cv.height+40) coins.splice(i,1);
   }
 
-  // moons
+  // moons (TO THE MOON only)
   for(let i=moons.length-1;i>=0;i--){
     const m=moons[i]; m.y += m.vy*dt; m.pulse+=dt*3;
     if((player.x-m.x)**2+(player.y-m.y)**2 <= (player.r+m.r)**2){
       moonCount = Math.min(3, moonCount+1); addParticles(m.x,m.y,18,'#cfe8ff'); moons.splice(i,1); updateHUDTop();
+      playMoonVoice();
       if(moonCount>=3 && !moonArmed){ moonArmed=true; actionBtn.classList.add('ready'); pingReady(); }
       continue;
     }
@@ -384,14 +373,13 @@ function loop(now){
   if(theme==='classic' && morph==='unicorn'){
     unicornTimer -= dt;
     if(unicornTimer<=0){
-      unicornTimer = 3.8; // every ~4s
-      // create a sweeping rainbow band from left->right at random y
-      const y = playfieldMargin + 60 + Math.random()*(cv.height-120-2*playfieldMargin);
+      unicornTimer = 3.8;
+      const y = 24 + 60 + Math.random()*(cv.height-120-48);
       sweeps.push({x:-120, y, w:140, h:100, speed:520, life:1.2, t:0});
     }
   }
 
-  // update sweeps & clear hazards in band
+  // update sweeps
   for(let i=sweeps.length-1;i>=0;i--){
     const s=sweeps[i]; s.t+=dt; s.x += s.speed*dt; if(s.x>cv.width+160 || s.t>s.life){ sweeps.splice(i,1); continue; }
     for(let j=hazards.length-1;j>=0;j--){
@@ -427,7 +415,7 @@ function draw(){
   // particles
   particles.forEach(p=>{ ctx.save(); ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
 
-  // sweeps (rainbow)
+  // sweeps
   sweeps.forEach(s=>{
     const g=ctx.createLinearGradient(s.x-s.w/2, s.y, s.x+s.w/2, s.y);
     g.addColorStop(0,'#ff2d55'); g.addColorStop(0.2,'#ffcc00'); g.addColorStop(0.4,'#34c759'); g.addColorStop(0.6,'#5ac8fa'); g.addColorStop(0.8,'#5856d6'); g.addColorStop(1,'#ff2d55');
@@ -487,7 +475,6 @@ function drawEmoji(e,x,y,size,rot,glow){ const ctx=cv.getContext('2d'); ctx.save
 function setReadyVisual(on){ actionBtn.classList.toggle('ready', !!on); }
 function setBankHUD(){ updateHUDTop(); }
 
-// ===== End
 </script>
 </body>
 </html>
