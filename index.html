@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v3.2 Doge Edition (Voices)</title>
+<title>Emoji Dodge – v3.4</title>
 <meta name="theme-color" content="#0b0f1a" />
 <style>
-  :root{ --bg:#080b14; --text:#f1f5ff; --muted:#9aa5c3; --gold:#ffd166; --red:#ff6b6b; }
+  :root{
+    --bg:#080b14; --text:#f1f5ff; --muted:#9aa5c3; --gold:#ffd166; --gold2:#ffea9a; --red:#ff6b6b;
+    --glass: rgba(255,255,255,.08); --glassBorder: rgba(255,255,255,.18);
+  }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%, #182046, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial;overscroll-behavior:none}
+  html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%, #1a2248, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial;overscroll-behavior:none}
   .wrap{display:flex;flex-direction:column;min-height:100dvh}
   main{position:relative;flex:1;overflow:hidden}
   .stage{position:relative;width:100%;height:100%}
@@ -16,7 +19,7 @@
   .hudBox{position:absolute;pointer-events:none}
   .score{position:absolute;left:14px;top:10px;font-weight:900;font-size: clamp(22px, 4.5vw, 36px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
   .bank{position:absolute;left:14px;top:48px;font-weight:800;opacity:.95;font-size: clamp(14px, 3.2vw, 20px)}
-  .modePill{position:absolute;right:12px;top:12px;font-weight:800;font-size: clamp(13px,2.6vw,18px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:9px 12px;border-radius:999px;pointer-events:auto;user-select:none;touch-action:manipulation;display:flex;align-items:center;gap:8px;backdrop-filter: blur(4px)}
+  .modePill{position:absolute;right:12px;top:12px;font-weight:800;font-size: clamp(13px,2.6vw,18px);background:var(--glass);border:1px solid var(--glassBorder);padding:9px 12px;border-radius:999px;pointer-events:auto;user-select:none;touch-action:manipulation;display:flex;align-items:center;gap:8px;backdrop-filter: blur(4px)}
   .event{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-weight:900;font-size: clamp(20px,3.6vw,32px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
   .overlay{position:absolute;display:none;place-items:center;background:rgba(8,11,20,.72);backdrop-filter: blur(2px); pointer-events:auto;border-radius:18px}
   .overlay.show{display:grid}
@@ -24,20 +27,27 @@
   .title{margin:0 0 6px;font-size: clamp(24px, 4.2vw, 44px);font-weight:900}
   .sub{margin:0 0 12px;color:var(--muted)}
   .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-  .btn{pointer-events:auto;border:none;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;color:#071022;background:var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:16px}
+  .btn{pointer-events:auto;border:none;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;color:#071022;background:linear-gradient(180deg,#ffd166,#ffb84d);box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:16px}
   .btn.sec{background:#1c2546;color:var(--text);border:1px solid rgba(255,255,255,.12)}
   .select{appearance:none;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 10px}
   .stick{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none}
   .stick::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
-  .action{position:absolute;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter: blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:manipulation}
+  .action{position:absolute;width:118px;height:118px;border-radius:22px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:manipulation; transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease}
   .action .big{font-size:36px}
-  .action .label{font-weight:900;font-size:16px}
-  .action .cost{font-weight:800;font-size:14px;color:var(--muted)}
-  .mute{position:absolute;right:12px;bottom:12px;border:none;border-radius:999px;padding:10px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:var(--text);font-weight:800;pointer-events:auto}
-  .action.disabled{opacity:.45;filter:grayscale(0.2)}
-  .shake{animation:shake .18s ease-in-out}
-  @keyframes shake{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(2px,0,0)}50%{transform:translate3d(-2px,0,0)}75%{transform:translate3d(2px,0,0)}100%{transform:translate3d(0,0,0)}}
+  .action:active{ transform: translateY(1px) scale(.99) }
+  .action.disabled{opacity:.45;filter:grayscale(0.2); box-shadow:none}
+  .action.ready{
+    border-color: rgba(255, 209, 102, 0.9);
+    box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5);
+    animation: pulseGlow 1.2s ease-out infinite;
+  }
+  @keyframes pulseGlow{
+    0%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5); }
+    70%{ box-shadow: 0 0 0 16px rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5); }
+    100%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5); }
+  }
+  .mute{position:absolute;right:12px;bottom:12px;border:none;border-radius:999px;padding:10px 12px;background:var(--glass);border:1px solid var(--glassBorder);color:var(--text);font-weight:800;pointer-events:auto}
 </style>
 </head>
 <body>
@@ -47,15 +57,15 @@
       <canvas id="cv" width="900" height="900"></canvas>
       <div class="hudBox" id="hudBox">
         <div class="score" id="scoreHUD">⭐ 0</div>
-        <div class="bank" id="bankHUD">💰 0</div>
+        <div class="bank" id="bankHUD">—</div>
         <button class="modePill" id="modePill">Tema</button>
         <div class="event" id="eventHUD">KAOS!</div>
       </div>
 
       <div class="overlay" id="startOv">
         <div class="card">
-          <h1 class="title">Emoji Dodge v3.2</h1>
-          <p class="sub">Välj tema: <b>Classic</b> (Bomb) eller <b>Doge World</b> (Coins + To The Moon + HODL).</p>
+          <h1 class="title">Emoji Dodge v3.4</h1>
+          <p class="sub"><b>Classic</b>: ⭐ = poäng, samla 💣 x3 för bomb. <b>Doge</b>: 🪙 = poäng, samla 🌙 x3 för raket.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn" id="startBtn">▶ Starta</button>
             <select class="select" id="themeSel">
@@ -67,7 +77,7 @@
               <option value="dodge">🚫 Undvik</option>
             </select>
           </div>
-          <div class="sub" style="font-size:12px">Lägg <code>soundtrack.mp3</code> + <code>boss.mp3</code> i roten. Lägg röster i <code>assets/</code> som <code>to_the_moon.mp3</code>, <code>hodl.mp3</code>, <code>buy_the_dip.mp3</code>.</div>
+          <div class="sub" style="font-size:12px">Assets (valfritt): <code>soundtrack.mp3</code>, <code>boss.mp3</code>, <code>assets/to_the_moon.mp3</code>, <code>assets/hodl.mp3</code>, <code>assets/buy_the_dip.mp3</code>, <code>assets/rocket_whoosh.mp3</code>, <code>assets/doge.png</code>, <code>assets/dogecoin.png</code></div>
         </div>
       </div>
 
@@ -85,8 +95,6 @@
       <div class="stick" id="stick"></div>
       <button class="action" id="actionBtn" aria-label="Action">
         <div class="big" id="actionIcon">💣</div>
-        <div class="label" id="actionLabel">Bomb</div>
-        <div class="cost" id="costHUD">kostar ⭐5</div>
       </button>
       <button class="mute" id="muteBtn">🔊</button>
       <audio id="bgMusic" src="soundtrack.mp3" preload="auto" loop></audio>
@@ -96,212 +104,98 @@
 </div>
 
 <script>
-// ===== Helpers: image loading with fallback to emoji drawing
-const images = {};
-function loadImage(key, src){
-  return new Promise(res=>{
-    const img = new Image();
-    img.onload = ()=>{ images[key]=img; res(true); };
-    img.onerror = ()=>{ res(false); };
-    img.src = src;
-  });
-}
+// ===== Helpers
+const images={};
+function loadImage(key, src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>{images[key]=im; res(true)}; im.onerror=()=>res(false); im.src=src; }); }
+function vibrate(p){ if(navigator.vibrate) navigator.vibrate(p); }
+const AC=window.AudioContext||window.webkitAudioContext; let actx=null, muted=false;
+function ensureAudio(){ if(!actx) actx=new AC(); }
+function tone(f=900,d=0.07,t='triangle',v=0.035){ if(muted||!actx) return; const o=actx.createOscillator(), g=actx.createGain(); o.type=t;o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+d); }
+function pingReady(){ tone(1100,0.09,'triangle',0.06); vibrate([10,40,10]); }
 
 // ===== Layout
-const stage = document.getElementById('stage');
-const cv = document.getElementById('cv');
-const hudBox = document.getElementById('hudBox');
-const stick = document.getElementById('stick');
-const actionBtn = document.getElementById('actionBtn');
-const actionIcon = document.getElementById('actionIcon');
-const actionLabel = document.getElementById('actionLabel');
-const costHUD = document.getElementById('costHUD');
-const muteBtn = document.getElementById('muteBtn');
-
+const stage=document.getElementById('stage'), cv=document.getElementById('cv'), hudBox=document.getElementById('hudBox');
+const stick=document.getElementById('stick'), actionBtn=document.getElementById('actionBtn'), actionIcon=document.getElementById('actionIcon');
+const muteBtn=document.getElementById('muteBtn');
 function layout(){
-  const vw = window.visualViewport ? window.visualViewport.width : innerWidth;
-  const vh = window.visualViewport ? window.visualViewport.height : innerHeight;
-  const isLandscape = vw > vh;
-  const pad = 12;
+  const vw = window.visualViewport ? visualViewport.width : innerWidth;
+  const vh = window.visualViewport ? visualViewport.height : innerHeight;
+  const isLandscape = vw>vh, pad=12;
   const joy = Math.round(Math.max(110, Math.min(140, Math.min(vw, vh)*0.18)));
-  stick.style.width = stick.style.height = joy + 'px';
-  const act = Math.round(joy*0.95);
-  actionBtn.style.width = actionBtn.style.height = act + 'px';
-
-  let side, left, top;
+  stick.style.width=stick.style.height=joy+'px';
+  const act=Math.round(joy*0.95); actionBtn.style.width=actionBtn.style.height=act+'px';
+  let side,left,top;
   if(isLandscape){
-    const gutterL = joy + 24;
-    const gutterR = act + 24;
-    side = Math.min(vh - pad*2, vw - pad*2 - gutterL - gutterR);
-    side = Math.max(320, Math.min(side, 1100));
-    left = Math.round((vw - (side + gutterL + gutterR))/2 + gutterL);
-    top  = Math.round((vh - side)/2);
+    const gutterL=joy+24, gutterR=act+24;
+    side=Math.min(vh-pad*2, vw-pad*2-gutterL-gutterR); side=Math.max(320, Math.min(side, 1100));
+    left=Math.round((vw-(side+gutterL+gutterR))/2+gutterL); top=Math.round((vh-side)/2);
     position(cv,left,top,side,side);
-    stick.style.left = Math.round(left - joy - 16) + 'px';
-    stick.style.top  = Math.round(top + (side - joy)/2) + 'px';
-    actionBtn.style.left = Math.round(left + side + 16) + 'px';
-    actionBtn.style.top  = Math.round(top + (side - act)/2) + 'px';
+    stick.style.left=Math.round(left-joy-16)+'px'; stick.style.top=Math.round(top+(side-joy)/2)+'px';
+    actionBtn.style.left=Math.round(left+side+16)+'px'; actionBtn.style.top=Math.round(top+(side-act)/2)+'px';
   }else{
-    side = Math.min(vw - pad*2, vh - pad*2 - (joy + 28));
-    side = Math.max(320, Math.min(side, 1100));
-    left = Math.round((vw - side)/2);
-    top  = Math.round((vh - (side + joy + 20))/2);
+    side=Math.min(vw-pad*2, vh-pad*2-(joy+28)); side=Math.max(320, Math.min(side, 1100));
+    left=Math.round((vw-side)/2); top=Math.round((vh-(side+joy+20))/2);
     position(cv,left,top,side,side);
-    const underY = Math.round(top + side + 8);
-    stick.style.left = Math.round(left + side*0.5 - joy - 10) + 'px';
-    stick.style.top  = underY + 'px';
-    actionBtn.style.left = Math.round(left + side*0.5 + 10) + 'px';
-    actionBtn.style.top  = underY + 'px';
+    const underY=Math.round(top+side+8);
+    stick.style.left=Math.round(left+side*0.5-joy-10)+'px'; stick.style.top=underY+'px';
+    actionBtn.style.left=Math.round(left+side*0.5+10)+'px'; actionBtn.style.top=underY+'px';
   }
-  const r = cv.getBoundingClientRect();
+  const r=cv.getBoundingClientRect();
   positionBox('hudBox', r); positionBox('startOv', r); positionBox('overOv', r);
-  // mute button near actionBtn but inside canvas rect
-  muteBtn.style.left = Math.round(r.right - 60) + 'px';
-  muteBtn.style.top  = Math.round(r.bottom - 44) + 'px';
+  muteBtn.style.left=Math.round(r.right-60)+'px'; muteBtn.style.top=Math.round(r.bottom-44)+'px';
 }
 function position(el,x,y,w,h){ el.style.left=x+'px'; el.style.top=y+'px'; el.style.width=w+'px'; el.style.height=h+'px'; }
-function positionBox(id, r){ const el=document.getElementById(id); el.style.left=r.left+'px'; el.style.top=r.top+'px'; el.style.width=r.width+'px'; el.style.height=r.height+'px'; }
+function positionBox(id,r){ const el=document.getElementById(id); el.style.left=r.left+'px'; el.style.top=r.top+'px'; el.style.width=r.width+'px'; el.style.height=r.height+'px'; }
 addEventListener('resize',layout); if (window.visualViewport) visualViewport.addEventListener('resize',layout);
 
 // ===== HUD & State
-const HUD = {
-  score: document.getElementById('scoreHUD'),
-  bank: document.getElementById('bankHUD'),
-  event: document.getElementById('eventHUD'),
-  start: document.getElementById('startOv'),
-  over: document.getElementById('overOv'),
-  finalScore: document.getElementById('finalScore'),
-  finalBest: document.getElementById('finalBest'),
-  themeSel: document.getElementById('themeSel'),
-  modeSelStart: document.getElementById('modeSelStart'),
-  modePill: document.getElementById('modePill')
-};
-const STORAGE_KEY='emoji_dodge_v32_best';
-let best = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+const HUD={ score:scoreHUD, bank:bankHUD, event:eventHUD, start:startOv, over:overOv, finalScore:finalScore, finalBest:finalBest, themeSel:themeSel, modeSelStart:modeSelStart, modePill:modePill };
+const STORAGE_KEY='emoji_dodge_v34_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
 
-// Themes
-const THEMES={
-  classicHaz:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'],
-  fun:['👻','💀','🕷️','🕸️','🍔','🍕','🌮','🍟','🏀','🎯','🎱']
-};
+const THEMES={ classicHaz:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'], fun:['👻','💀','🕷️','🕸️','🍔','🍕','🌮','🍟','🏀','🎯','🎱'] };
 
-// Audio + Haptics
-const AC = window.AudioContext || window.webkitAudioContext;
-let actx=null, muted=false;
-const music = document.getElementById('bgMusic');
-const musicBoss = document.getElementById('sBoss');
-function ensureAudio(){ if(!actx) actx=new AC(); }
-function tone(f=600,d=0.07,t='sine',v=0.025){ if(muted||!actx) return; const o=actx.createOscillator(); const g=actx.createGain(); o.type=t;o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+d); }
-function vibrate(p){ if(navigator.vibrate) navigator.vibrate(p); }
-function boom(){ tone(80,0.25,'sawtooth',0.05); vibrate([20,30,40]); }
-function bling(){ tone(900,0.08,'triangle',0.045); vibrate(15); }
-function stinger(){ tone(520,0.12,'square',0.04); setTimeout(()=>tone(720,0.12,'square',0.04),120); vibrate([10,30,10]); }
-function heartBeat(){ tone(200,0.05,'sine',0.03); setTimeout(()=>tone(160,0.05,'sine',0.03),90); vibrate(10); }
+const music=bgMusic, musicBoss=sBoss;
+function tryPlayMusic(){ if(muted) return; music.volume=0.7; music.play().catch(()=>{}); }
+muteBtn.addEventListener('click', ()=>{ muted=!muted; muteBtn.textContent=muted?'🔇':'🔊'; if(muted){ music.pause(); musicBoss.pause(); } else tryPlayMusic(); }, {passive:true});
 
-// Voice pack
-const dogeVoices=[
-  'assets/to_the_moon.mp3',
-  'assets/hodl.mp3',
-  'assets/buy_the_dip.mp3'
-];
-function playVoice(){
-  if(muted) return;
-  const pick = dogeVoices[Math.floor(Math.random()*dogeVoices.length)];
-  const a = new Audio(pick);
-  a.volume = 0.9;
-  a.play().catch(()=>{});
-}
-function playRocket(){
-  if(muted) return;
-  // optional rocket sound if present
-  const a = new Audio('assets/rocket_whoosh.mp3');
-  a.volume = 0.9;
-  a.play().catch(()=>{});
-}
-
-muteBtn.addEventListener('click', ()=>{
-  muted = !muted;
-  muteBtn.textContent = muted ? '🔇' : '🔊';
-  if(muted){ music.pause(); musicBoss.pause(); } else { tryPlayMusic(); }
-}, {passive:true});
-
-function tryPlayMusic(){
-  if(muted) return;
-  const el = music; // default track
-  el.volume = 0.7;
-  el.play().catch(()=>{});
-}
+// Voices
+const dogeVoices=['assets/to_the_moon.mp3','assets/hodl.mp3','assets/buy_the_dip.mp3'];
+function playVoice(){ if(muted) return; const pick=dogeVoices[Math.floor(Math.random()*dogeVoices.length)]; const a=new Audio(pick); a.volume=0.9; a.play().catch(()=>{}); }
+function playRocket(){ if(muted) return; const a=new Audio('assets/rocket_whoosh.mp3'); a.volume=0.9; a.play().catch(()=>{}); }
 
 // Game state
-let running=false, mode='collect', theme='classic'; // theme: classic | doge
-let t=0,last=0,dt=0,score=0,gravity=1,warp=1;
-let hazards=[],goods=[],coins=[],particles=[];
-const fx={};
-const player={x:cv.width/2,y:cv.height*0.78,r:26,spd:370,emoji:'😎'};
-
-// Classic power
-let bank=0, bombCooldown=0;
-const BOMB_COST=5, BOMB_COOLDOWN_S=3;
-
-// Doge power
-let dBank=0, moonReady=false, moonActive=0, shield=0;
-const MOON_COST=5, MOON_TIME=2.0, SHIELD_TIME=3.0;
-
-// Images
+let running=false, mode='collect', theme='classic';
+let t=0,last=0,dt=0,score=0;
+let hazards=[],stars=[],bombParts=[],coins=[],moons=[],particles=[],sweeps=[];
+const player={x:cv.width/2,y:cv.height*0.78,r:26,spd:370,emoji:'😀'};
+let bombCount=0, bombArmed=false;
+let moonCount=0, moonArmed=false, moonActive=0, shield=0, invul=0, spawnGrace=0;
+const MOON_TIME=2.0;
 let dogeImg=null, coinImg=null;
+const playfieldMargin=24;
+
+// Morph (Classic only)
+let classicStars=0, morph='base'; // base -> unicorn
+let unicornTimer=0; // controls sweep interval
 
 // Clamp
-const playfieldMargin = 24;
-function clampPlayer(){
-  const minX = playfieldMargin + player.r;
-  const maxX = cv.width - playfieldMargin - player.r;
-  const minY = playfieldMargin + player.r;
-  const maxY = cv.height - playfieldMargin - player.r;
-  if(player.x < minX) player.x = minX;
-  if(player.x > maxX) player.x = maxX;
-  if(player.y < minY) player.y = minY;
-  if(player.y > maxY) player.y = maxY;
-}
+function clampPlayer(){ const minX=playfieldMargin+player.r, maxX=cv.width-playfieldMargin-player.r, minY=playfieldMargin+player.r, maxY=cv.height-playfieldMargin-player.r; if(player.x<minX) player.x=minX; if(player.x>maxX) player.x=maxX; if(player.y<minY) player.y=minY; if(player.y>maxY) player.y=maxY; }
 
 // Input
 const keys={ArrowUp:0,ArrowDown:0,ArrowLeft:0,ArrowRight:0,KeyW:0,KeyA:0,KeyS:0,KeyD:0,Space:0};
 addEventListener('keydown',e=>{ if(e.code in keys) keys[e.code]=1; if(e.code==='Space') doAction(); });
 addEventListener('keyup',e=>{ if(e.code in keys) keys[e.code]=0; });
 
-HUD.modePill.addEventListener('click', ()=>{
-  toast(theme==='doge'?'Doge World 🐶🪙':'Classic');
-}, {passive:true});
-
-// Start/Retry/Menu
-document.getElementById('startBtn').addEventListener('click', async (e)=>{ e.preventDefault(); ensureAudio(); setOptionsFromMenu(); await preloadAssets(); start(); }, {passive:false});
-document.getElementById('retryBtn').addEventListener('click', (e)=>{ e.preventDefault(); ensureAudio(); start(); }, {passive:false});
-document.getElementById('menuBtn').addEventListener('click', (e)=>{ e.preventDefault(); HUD.over.classList.remove('show'); HUD.start.classList.add('show'); }, {passive:false});
+modePill.addEventListener('click', ()=>{ toast(theme==='doge'?'Doge World 🐶🪙':'Classic'); }, {passive:true});
+startBtn.addEventListener('click', async e=>{ e.preventDefault(); ensureAudio(); setOptionsFromMenu(); await preloadAssets(); start(); }, {passive:false});
+retryBtn.addEventListener('click', e=>{ e.preventDefault(); ensureAudio(); start(); }, {passive:false});
+menuBtn.addEventListener('click', e=>{ e.preventDefault(); HUD.over.classList.remove('show'); HUD.start.classList.add('show'); }, {passive:false});
 cv.addEventListener('click', async ()=>{ if(!running){ ensureAudio(); setOptionsFromMenu(); await preloadAssets(); start(); } }, {passive:true});
 
-function setOptionsFromMenu(){
-  theme = HUD.themeSel.value;
-  mode  = HUD.modeSelStart.value;
-  HUD.modePill.textContent = (theme==='doge'?'Doge World 🐶🪙':'Classic') + ' · ' + (mode==='collect'?'⭐ Samla':'🚫 Undvik');
-  setupActionUI();
-}
+function setOptionsFromMenu(){ theme=HUD.themeSel.value; mode=HUD.modeSelStart.value; HUD.modePill.textContent=(theme==='doge'?'Doge World 🐶🪙':'Classic')+' · '+(mode==='collect'?'⭐ Samla':'🚫 Undvik'); setupActionUI(); }
+function setupActionUI(){ if(theme==='doge'){ actionIcon.textContent='🚀'; } else { actionIcon.textContent='💣'; } }
 
-function setupActionUI(){
-  if(theme==='doge'){
-    actionIcon.textContent='🚀';
-    actionLabel.textContent='Moon';
-    costHUD.textContent='kostar 🪙'+MOON_COST;
-  }else{
-    actionIcon.textContent='💣';
-    actionLabel.textContent='Bomb';
-    costHUD.textContent='kostar ⭐'+BOMB_COST;
-  }
-}
-
-async function preloadAssets(){
-  // Try loading images (fallback to emoji if fail)
-  const d1 = await loadImage('doge','assets/doge.png'); if(d1) dogeImg=images['doge'];
-  const d2 = await loadImage('coin','assets/dogecoin.png'); if(d2) coinImg=images['coin'];
-}
+async function preloadAssets(){ const d1=await loadImage('doge','assets/doge.png'); if(d1) dogeImg=images['doge']; const d2=await loadImage('coin','assets/dogecoin.png'); if(d2) coinImg=images['coin']; }
 
 // Joystick
 let stickActive=false, stickStart=null, stickVec={x:0,y:0};
@@ -312,224 +206,267 @@ let stickActive=false, stickStart=null, stickVec={x:0,y:0};
   ev.preventDefault();
 },{passive:false}));
 
-actionBtn.addEventListener('click', (e)=>{ e.preventDefault(); doAction(); }, {passive:false});
+actionBtn.addEventListener('click', e=>{ e.preventDefault(); doAction(); }, {passive:false});
 
 // Core
-HUD.start.classList.add('show');
-HUD.score.textContent='⭐ 0'; HUD.bank.textContent='💰 0';
-layout();
+HUD.start.classList.add('show'); HUD.score.textContent='⭐ 0'; HUD.bank.textContent='—'; layout();
 
 function start(){
-  hazards.length=0; goods.length=0; coins.length=0; particles.length=0;
-  score=0; t=0; gravity=1; warp=1; last=0;
-  player.x=cv.width/2; player.y=cv.height*0.78; player.emoji=(theme==='doge'?'🐶':'😎');
-  bank=0; bombCooldown=0; dBank=0; moonReady=false; moonActive=0; shield=0;
-  running=true;
-  HUD.start.classList.remove('show'); HUD.over.classList.remove('show');
-  HUD.bank.textContent = theme==='doge' ? '🪙 0' : '💰 0';
-  tryPlayMusic();
-  requestAnimationFrame(loop);
+  // reset
+  hazards.length=0; stars.length=0; bombParts.length=0; coins.length=0; moons.length=0; particles.length=0; sweeps.length=0;
+  score=0; t=0; last=0;
+  player.x=cv.width/2; player.y=cv.height*0.78; player.emoji=(theme==='doge'?'🐶':'😀');
+  bombCount=0; bombArmed=false; moonCount=0; moonArmed=false; moonActive=0; shield=0; invul=0; spawnGrace=0;
+  classicStars=0; morph='base'; unicornTimer=0;
+  running=true; HUD.start.classList.remove('show'); HUD.over.classList.remove('show');
+  updateHUDTop();
+  tryPlayMusic(); requestAnimationFrame(loop);
 }
 
-function gameOver(){
-  running=false; boom();
-  const s=Math.floor(score);
-  document.getElementById('finalScore').textContent=s;
-  if(s>best){ best=s; localStorage.setItem(STORAGE_KEY,String(best)); }
-  document.getElementById('finalBest').textContent=best;
-  HUD.over.classList.add('show');
+function updateHUDTop(){
+  if(theme==='classic'){ HUD.bank.textContent = '💣 '+bombCount+'/3'; }
+  else { HUD.bank.textContent = '🌙 '+moonCount+'/3'; }
 }
 
-function spawnHazard(){
-  const arr = theme==='classic' ? THEMES.classicHaz : THEMES.fun;
-  const baseR=18 + Math.random()*32;
-  const speedScale=(baseR<22?1.45:1.0);
-  hazards.push({ x:Math.random()*(cv.width-2*playfieldMargin)+playfieldMargin, y:-40, r:baseR, vy:(150+Math.random()*220+Math.min(280,score*0.6))*speedScale, vx:(Math.random()-0.5)*90, rot:Math.random()*Math.PI*2, spin:(Math.random()-0.5)*2, emoji:arr[Math.floor(Math.random()*arr.length)] });
-}
-function spawnGood(){ goods.push({ x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin), y:-30, r:22, vy:150+Math.random()*120, emoji:'⭐', pulse:Math.random()*Math.PI*2 }); }
-function spawnCoin(){ coins.push({ x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin), y:-30, r:20, vy:150+Math.random()*120, emoji:'🪙', pulse:Math.random()*Math.PI*2 }); }
-function addParticles(x,y,n=14,color='#fff'){ for(let i=0;i<n;i++){ particles.push({x,y,vx:(Math.random()-0.5)*230,vy:(Math.random()-0.5)*230,life:0.7+Math.random()*0.5,color}); } }
+function gameOver(){ running=false; const s=Math.floor(score); HUD.finalScore.textContent=s; if(s>best){ best=s; localStorage.setItem(STORAGE_KEY,String(best)); } HUD.finalBest.textContent=best; HUD.over.classList.add('show'); }
 
-function toast(txt){ HUD.event.textContent=txt; HUD.event.style.opacity=1; setTimeout(()=>HUD.event.style.opacity=0,1000); }
+// Spawns
+function spawnHazard(){ const arr=theme==='classic'?THEMES.classicHaz:THEMES.fun; const baseR=18+Math.random()*32; const speedScale=(baseR<22?1.45:1.0);
+  hazards.push({x:Math.random()*(cv.width-2*playfieldMargin)+playfieldMargin,y:-40,r:baseR,vy:(150+Math.random()*220+Math.min(280,score*0.6))*speedScale,vx:(Math.random()-0.5)*90,rot:Math.random()*Math.PI*2,spin:(Math.random()-0.5)*2,emoji:arr[Math.floor(Math.random()*arr.length)]}); }
+function spawnStar(){ stars.push({x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin),y:-30,r:22,vy:150+Math.random()*120,emoji:'⭐',pulse:Math.random()*Math.PI*2}); }
+function spawnBombPart(){ bombParts.push({x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin),y:-30,r:20,vy:150+Math.random()*120,emoji:'💣',pulse:Math.random()*Math.PI*2}); }
+function spawnCoin(){ coins.push({x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin),y:-30,r:20,vy:150+Math.random()*120,emoji:'🪙',pulse:Math.random()*Math.PI*2}); }
+function spawnMoon(){ moons.push({x:playfieldMargin+30+Math.random()*(cv.width-60-2*playfieldMargin),y:-30,r:20,vy:150+Math.random()*120,emoji:'🌙',pulse:Math.random()*Math.PI*2}); }
 
-function doAction(){ if(theme==='doge') moon(); else bomb(); }
+function addParticles(x,y,n=14,color='#fff'){ for(let i=0;i<n;i++) particles.push({x,y,vx:(Math.random()-0.5)*230,vy:(Math.random()-0.5)*230,life:0.7+Math.random()*0.5,color}); }
+function toast(txt){ eventHUD.textContent=txt; eventHUD.style.opacity=1; setTimeout(()=>eventHUD.style.opacity=0,1000); }
+
+// Specials
+function doAction(){ if(theme==='doge') rocket(); else bomb(); }
 
 function bomb(){
-  if(!running) return;
-  const ready = bank>=BOMB_COST && bombCooldown<=0;
-  if(!ready) { stinger(); return; }
-  bank -= BOMB_COST;
-  let cleared=hazards.length;
-  hazards.forEach(h=> addParticles(h.x,h.y,22,'#ffb3b3'));
-  hazards.length=0;
-  score += cleared*10;
-  bombCooldown=BOMB_COOLDOWN_S;
-  updateBanks();
-  toast('💣 Bomb!');
-  tone(90,0.25,'sawtooth',0.08);
+  if(!running || !bombArmed) return;
+  bombArmed=false; bombCount=0; updateHUDTop();
+  // clear all hazards + particles
+  hazards.forEach(h=>addParticles(h.x,h.y,22,'#ffb3b3')); hazards.length=0; toast('💣 BOOM!'); vibrate([30,50,30]);
+  actionBtn.classList.remove('ready');
 }
 
-function moon(){
-  if(!running) return;
-  const ready = dBank>=MOON_COST && moonActive<=0;
-  if(!ready){ stinger(); return; }
-  dBank -= MOON_COST;
-  moonActive = MOON_TIME;
-  playVoice();
-  setTimeout(playRocket, 400);
-  toast('🚀 To The Moon!');
-  vibrate([30,40,30]);
-  updateBanks();
+function rocket(){
+  if(!running || !moonArmed || moonActive>0) return;
+  moonArmed=false; moonCount=0; updateHUDTop();
+  moonActive=MOON_TIME; invul=0;
+  // voice + rocket sfx
+  playVoice(); setTimeout(()=>{ try{ playRocket(); }catch(e){} }, 350);
+  toast('🚀'); vibrate([30,40,30]);
+  actionBtn.classList.remove('ready');
 }
 
-function landMoon(){
-  // radial clear near player + shield
-  const radius = 160;
-  let kept=[];
-  hazards.forEach(h=>{
-    const d=Math.hypot(h.x-player.x, h.y-player.y);
-    if(d<radius){ addParticles(h.x,h.y,18,'#ffd166'); score+=10; } else kept.push(h);
-  });
-  hazards = kept;
-  shield = SHIELD_TIME;
-  toast('🛡 HODL!');
+function landRocket(){
+  // radial clear + shield + spawn grace
+  const radius=180; let kept=[];
+  hazards.forEach(h=>{ const d=Math.hypot(h.x-player.x,h.y-player.y); if(d<radius){ addParticles(h.x,h.y,18,'#ffd166'); score+=10; } else kept.push(h); });
+  hazards=kept;
+  shield=3.0; invul=1.0; spawnGrace=1.6; toast('🛡');
 }
 
-function updateBanks(){
-  HUD.bank.textContent = theme==='doge' ? ('🪙 '+dBank) : ('💰 '+bank);
-  if(theme==='doge'){
-    const ready=dBank>=MOON_COST && moonActive<=0;
-    actionBtn.classList.toggle('disabled', !ready);
-    costHUD.textContent = ready ? 'redo!' : ('kostar 🪙'+MOON_COST);
-  }else{
-    const ready=bank>=BOMB_COST && bombCooldown<=0;
-    actionBtn.classList.toggle('disabled', !ready);
-    costHUD.textContent = bombCooldown>0 ? ('cooldown '+Math.ceil(bombCooldown)+'s') : ('kostar ⭐'+BOMB_COST);
-  }
-}
-
+// ===== Loop
 function loop(now){
-  if(!running) return;
-  requestAnimationFrame(loop);
+  if(!running) return; requestAnimationFrame(loop);
   if(!last) last=now; dt=(now-last)/1000; last=now;
 
-  // timers
-  if(theme==='classic'){ if(bombCooldown>0){ bombCooldown=Math.max(0,bombCooldown-dt); if(bombCooldown===0) updateBanks(); } }
+  // timers (doge flight/shield)
   if(theme==='doge'){
-    if(moonActive>0){ moonActive=Math.max(0, moonActive-dt); player.y -= 500*dt; if(moonActive===0) landMoon(); }
+    const topStop=playfieldMargin+80+player.r;
+    if(moonActive>0){
+      const ix=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0) + (stickActive?stickVec.x*1.2:0);
+      player.x += ix*player.spd*dt; player.y -= 520*dt*(0.6+0.4*Math.cos((moonActive/MOON_TIME)*Math.PI));
+      if(player.y<topStop) player.y=topStop;
+      moonActive=Math.max(0, moonActive-dt);
+      if(moonActive===0) landRocket();
+    }
     if(shield>0) shield=Math.max(0, shield-dt);
+    if(invul>0) invul=Math.max(0, invul-dt);
+    if(spawnGrace>0) spawnGrace=Math.max(0, spawnGrace-dt);
   }
 
   // pacing
-  const hazardInt=Math.max(0.16, 0.7 - score*0.0025);
-  const goodInt=Math.max(0.68, 1.45 - score*0.0015);
+  let hazardInt=Math.max(0.22, 0.85 - score*0.0022);
+  if(spawnGrace>0) hazardInt*=1.7;
+  const starInt=Math.max(0.68, 1.45 - score*0.0015);
+  const coinInt=starInt;
+  const specialInt=1.8; // how often to try spawn special (bombparts or moons)
   t+=dt;
   if(t % hazardInt < dt) spawnHazard();
-  if(mode==='collect' && t % goodInt < dt){
-    if(theme==='doge' && Math.random()<0.35) spawnCoin(); else spawnGood();
+  if(mode==='collect'){
+    if(theme==='classic' && t % starInt < dt) spawnStar();
+    if(theme==='doge' && t % coinInt < dt){ spawnCoin(); }
+  }
+  if(t % specialInt < dt){
+    if(theme==='classic' && Math.random()<0.55) spawnBombPart();
+    if(theme==='doge' && Math.random()<0.55) spawnMoon();
   }
 
-  // input
-  let ix=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0);
-  let iy=(keys.ArrowDown||keys.KeyS?1:0)-(keys.ArrowUp||keys.KeyW?1:0);
-  if(stickActive){ ix += stickVec.x*1.2; iy += stickVec.y*1.2; }
-  const mag=Math.hypot(ix,iy)||1;
-  if(moonActive<=0){ // normal control unless moon
+  // input (normal)
+  if(moonActive<=0){
+    let ix=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0);
+    let iy=(keys.ArrowDown||keys.KeyS?1:0)-(keys.ArrowUp||keys.KeyW?1:0);
+    if(stickActive){ ix+=stickVec.x*1.2; iy+=stickVec.y*1.2; }
+    const mag=Math.hypot(ix,iy)||1;
     player.x += (ix/mag)*player.spd*dt;
     player.y += (iy/mag)*player.spd*dt;
-    player.y += 100*dt; // gravity
+    player.y += 100*dt;
   }
   clampPlayer();
 
   // hazards
   for(let i=hazards.length-1;i>=0;i--){
     const h=hazards[i];
-    h.y += h.vy*dt; h.x += h.vx*dt; h.rot += h.spin*dt;
-    if(h.x<h.r+playfieldMargin || h.x>cv.width-h.r-playfieldMargin) h.vx*=-1;
-    const d2 = (player.x-h.x)**2+(player.y-h.y)**2;
-    const hit = d2 <= (player.r+h.r)**2;
+    h.y += (150+Math.min(280,score*0.6))*dt; h.x += h.vx*dt; h.rot += h.spin*dt;
+    if(h.x<h.r+24 || h.x>cv.width-h.r-24) h.vx*=-1;
+    const hit=((player.x-h.x)**2+(player.y-h.y)**2) <= (player.r+h.r)**2;
     if(hit){
-      if(theme==='doge' && (moonActive>0 || shield>0)){
-        if(shield>0){ shield=0; toast('💥 HODL hit'); }
-        hazards.splice(i,1);
-        continue;
+      if(theme==='doge' && (moonActive>0 || shield>0 || invul>0)){
+        if(shield>0){ shield=0; toast('💥'); }
+        hazards.splice(i,1); continue;
       }
       return gameOver();
     }
     if(h.y-h.r>cv.height+60) hazards.splice(i,1);
   }
 
-  // goods
-  for(let i=goods.length-1;i>=0;i--){
-    const g=goods[i];
-    g.y += g.vy*dt; g.pulse+=dt*3;
+  // stars
+  for(let i=stars.length-1;i>=0;i--){
+    const g=stars[i]; g.y += g.vy*dt; g.pulse+=dt*3;
     if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){
-      score+=25; bank+= (theme==='classic'?1:0); bling(); addParticles(g.x,g.y,20,'#ffd166'); goods.splice(i,1); updateBanks(); continue;
+      score+=25; classicStars+=1; addParticles(g.x,g.y,20,'#ffd166'); stars.splice(i,1);
+      // morph progression
+      if(theme==='classic' && morph==='base' && classicStars>=5){ morph='unicorn'; toast('🦄'); }
+      continue;
     }
-    if(g.y-g.r>cv.height+40) goods.splice(i,1);
+    if(g.y-g.r>cv.height+40) stars.splice(i,1);
+  }
+
+  // bomb parts
+  for(let i=bombParts.length-1;i>=0;i--){
+    const b=bombParts[i]; b.y += b.vy*dt; b.pulse+=dt*3;
+    if((player.x-b.x)**2+(player.y-b.y)**2 <= (player.r+b.r)**2){
+      bombCount = Math.min(3, bombCount+1); addParticles(b.x,b.y,18,'#ffb3b3'); bombParts.splice(i,1); updateHUDTop();
+      if(bombCount>=3 && !bombArmed){ bombArmed=true; actionBtn.classList.add('ready'); pingReady(); }
+      continue;
+    }
+    if(b.y-b.r>cv.height+40) bombParts.splice(i,1);
   }
 
   // coins
   for(let i=coins.length-1;i>=0;i--){
-    const c=coins[i];
-    c.y += c.vy*dt; c.pulse+=dt*3;
+    const c=coins[i]; c.y += c.vy*dt; c.pulse+=dt*3;
     if((player.x-c.x)**2+(player.y-c.y)**2 <= (player.r+c.r)**2){
-      score+=30; dBank+=1; bling(); addParticles(c.x,c.y,20,'#ffe28a'); coins.splice(i,1); updateBanks(); toast('to the moon!'); continue;
+      score+=30; addParticles(c.x,c.y,20,'#ffe28a'); coins.splice(i,1);
+      if(!muted) playVoice(); // play meme voice on pickup
+      continue;
     }
     if(c.y-c.r>cv.height+40) coins.splice(i,1);
   }
 
-  // particles
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i]; p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; }
-    p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 380*dt;
+  // moons
+  for(let i=moons.length-1;i>=0;i--){
+    const m=moons[i]; m.y += m.vy*dt; m.pulse+=dt*3;
+    if((player.x-m.x)**2+(player.y-m.y)**2 <= (player.r+m.r)**2){
+      moonCount = Math.min(3, moonCount+1); addParticles(m.x,m.y,18,'#cfe8ff'); moons.splice(i,1); updateHUDTop();
+      if(moonCount>=3 && !moonArmed){ moonArmed=true; actionBtn.classList.add('ready'); pingReady(); }
+      continue;
+    }
+    if(m.y-m.r>cv.height+40) moons.splice(i,1);
   }
 
+  // unicorn passive (classic)
+  if(theme==='classic' && morph==='unicorn'){
+    unicornTimer -= dt;
+    if(unicornTimer<=0){
+      unicornTimer = 3.8; // every ~4s
+      // create a sweeping rainbow band from left->right at random y
+      const y = playfieldMargin + 60 + Math.random()*(cv.height-120-2*playfieldMargin);
+      sweeps.push({x:-120, y, w:140, h:100, speed:520, life:1.2, t:0});
+    }
+  }
+
+  // update sweeps & clear hazards in band
+  for(let i=sweeps.length-1;i>=0;i--){
+    const s=sweeps[i]; s.t+=dt; s.x += s.speed*dt; if(s.x>cv.width+160 || s.t>s.life){ sweeps.splice(i,1); continue; }
+    for(let j=hazards.length-1;j>=0;j--){
+      const h=hazards[j];
+      if(h.y> s.y - s.h/2 && h.y < s.y + s.h/2 && h.x > s.x - s.w/2 && h.x < s.x + s.w/2){
+        addParticles(h.x,h.y,16,'#ff9de6'); hazards.splice(j,1);
+      }
+    }
+  }
+
+  // particles
+  for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; } p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=380*dt; }
+
   score += dt*4;
-  HUD.score.textContent='⭐ '+Math.floor(score);
+  scoreHUD.textContent='⭐ '+Math.floor(score);
   draw();
 }
 
+// ===== Draw
 function draw(){
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,cv.width,cv.height);
+  const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
   // grid
   ctx.save(); ctx.globalAlpha=0.05; ctx.strokeStyle='#cbd5ff';
   const grid=90; ctx.beginPath();
-  for(let gx=playfieldMargin;gx<cv.width-playfieldMargin;gx+=grid){ ctx.moveTo(gx,playfieldMargin); ctx.lineTo(gx,cv.height-playfieldMargin); }
-  for(let gy=playfieldMargin;gy<cv.height-playfieldMargin;gy+=grid){ ctx.moveTo(playfieldMargin,gy); ctx.lineTo(cv.width-playfieldMargin,gy); }
+  for(let gx=24;gx<cv.width-24;gx+=grid){ ctx.moveTo(gx,24); ctx.lineTo(gx,cv.height-24); }
+  for(let gy=24;gy<cv.height-24;gy+=grid){ ctx.moveTo(24,gy); ctx.lineTo(cv.width-24,gy); }
   ctx.stroke(); ctx.restore();
 
-  // shield aura
-  if(theme==='doge' && shield>0){
-    ctx.save(); ctx.globalAlpha=0.18; ctx.strokeStyle='#ffd166'; ctx.lineWidth=12;
-    ctx.beginPath(); ctx.arc(player.x,player.y, player.r+18, 0, Math.PI*2); ctx.stroke(); ctx.restore();
-  }
+  // shield/invul
+  if(shield>0){ const a=Math.max(0.15, 0.25*Math.sin(Date.now()/180)+0.3); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle='#ffd166'; ctx.lineWidth=12; ctx.beginPath(); ctx.arc(player.x,player.y, player.r+18, 0, Math.PI*2); ctx.stroke(); ctx.restore(); }
+  if(invul>0){ ctx.save(); ctx.globalAlpha=0.22; ctx.strokeStyle='#8dfcff'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(player.x,player.y, player.r+28, 0, Math.PI*2); ctx.stroke(); ctx.restore(); }
 
   // particles
   particles.forEach(p=>{ ctx.save(); ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
 
-  // goods
-  goods.forEach(g=>{
+  // sweeps (rainbow)
+  sweeps.forEach(s=>{
+    const g=ctx.createLinearGradient(s.x-s.w/2, s.y, s.x+s.w/2, s.y);
+    g.addColorStop(0,'#ff2d55'); g.addColorStop(0.2,'#ffcc00'); g.addColorStop(0.4,'#34c759'); g.addColorStop(0.6,'#5ac8fa'); g.addColorStop(0.8,'#5856d6'); g.addColorStop(1,'#ff2d55');
+    ctx.save(); ctx.globalAlpha=0.5; ctx.fillStyle=g;
+    ctx.fillRect(s.x-s.w/2, s.y-s.h/2, s.w, s.h);
+    ctx.restore();
+  });
+
+  // stars
+  stars.forEach(g=>{
     const pulse=0.35+0.18*Math.sin(g.pulse*2);
     ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffd166'; ctx.lineWidth=10;
     ctx.beginPath(); ctx.arc(g.x,g.y,g.r+12,0,Math.PI*2); ctx.stroke(); ctx.restore();
     drawEmoji('⭐', g.x,g.y, g.r*2+4*Math.sin(g.pulse), 0, '#ffd166');
   });
 
-  // coins (use image if available)
+  // bomb parts
+  bombParts.forEach(b=>{
+    const pulse=0.35+0.18*Math.sin(b.pulse*2);
+    ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffb3b3'; ctx.lineWidth=10;
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r+10,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    drawEmoji('💣', b.x,b.y, b.r*2+2*Math.sin(b.pulse), 0, '#ffb3b3');
+  });
+
+  // coins
   coins.forEach(cn=>{
     const pulse=0.35+0.18*Math.sin(cn.pulse*2);
     ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#ffe28a'; ctx.lineWidth=10;
     ctx.beginPath(); ctx.arc(cn.x,cn.y,cn.r+10,0,Math.PI*2); ctx.stroke(); ctx.restore();
-    if(coinImg){
-      ctx.save();
-      ctx.translate(cn.x, cn.y);
-      ctx.drawImage(coinImg, -cn.r, -cn.r, cn.r*2, cn.r*2);
-      ctx.restore();
-    }else{
-      drawEmoji('🪙', cn.x,cn.y, cn.r*2+2*Math.sin(cn.pulse), 0, '#ffe28a');
-    }
+    if(images['coin']){ ctx.save(); ctx.translate(cn.x, cn.y); ctx.drawImage(images['coin'], -cn.r, -cn.r, cn.r*2, cn.r*2); ctx.restore(); }
+    else { drawEmoji('🪙', cn.x,cn.y, cn.r*2+2*Math.sin(cn.pulse), 0, '#ffe28a'); }
+  });
+
+  // moons
+  moons.forEach(m=>{
+    const pulse=0.35+0.18*Math.sin(m.pulse*2);
+    ctx.save(); ctx.globalAlpha=0.35+pulse; ctx.strokeStyle='#cfe8ff'; ctx.lineWidth=10;
+    ctx.beginPath(); ctx.arc(m.x,m.y,m.r+10,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    drawEmoji('🌙', m.x,m.y, m.r*2+2*Math.sin(m.pulse), 0, '#cfe8ff');
   });
 
   // hazards
@@ -539,26 +476,18 @@ function draw(){
     drawEmoji(h.emoji, h.x,h.y, h.r*2, h.rot, '#ff6b6b');
   });
 
-  // player (use doge image in doge theme)
-  if(theme==='doge' && dogeImg){
-    const s = player.r*2;
-    ctx.save(); ctx.translate(player.x, player.y);
-    ctx.drawImage(dogeImg, -s/2, -s/2, s, s);
-    ctx.restore();
-  }else{
-    drawEmoji(player.emoji, player.x, player.y, player.r*2, 0, '#f1f5ff');
-  }
+  // player
+  if(theme==='doge' && images['doge']){ const s=player.r*2; ctx.save(); ctx.translate(player.x, player.y); ctx.drawImage(images['doge'], -s/2, -s/2, s, s); ctx.restore(); }
+  else drawEmoji(player.emoji, player.x, player.y, player.r*2, 0, '#f1f5ff');
 }
 
-function drawEmoji(e,x,y,size,rot,glow){
-  const ctx=cv.getContext('2d');
-  ctx.save();
-  ctx.translate(x,y); ctx.rotate(rot);
-  ctx.font = `${size}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  if(glow){ ctx.shadowColor=glow; ctx.shadowBlur=14; ctx.shadowOffsetY=2; }
-  ctx.fillText(e,0,0);
-  ctx.restore();
-}
+function drawEmoji(e,x,y,size,rot,glow){ const ctx=cv.getContext('2d'); ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.font=`${size}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; if(glow){ ctx.shadowColor=glow; ctx.shadowBlur=14; ctx.shadowOffsetY=2; } ctx.fillText(e,0,0); ctx.restore(); }
+
+// ===== UI updates
+function setReadyVisual(on){ actionBtn.classList.toggle('ready', !!on); }
+function setBankHUD(){ updateHUDTop(); }
+
+// ===== End
 </script>
 </body>
 </html>
