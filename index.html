@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v2.6 Mobile Layout Pro</title>
+<title>Emoji Dodge – v2.7 Bomb Power</title>
 <meta name="theme-color" content="#0b0f1a" />
 <style>
   :root{ --bg:#080b14; --text:#f1f5ff; --muted:#9aa5c3; --gold:#ffd166; --red:#ff6b6b; }
@@ -11,12 +11,11 @@
   html,body{height:100%;margin:0;background:radial-gradient(1200px 700px at 70% -10%, #182046, #080b14 60%);color:var(--text);font-family:ui-sans-serif,system-ui,Inter,Arial;overscroll-behavior:none}
   .wrap{display:flex;flex-direction:column;min-height:100dvh}
   main{position:relative;flex:1;overflow:hidden}
-  /* Stage fills viewport; we absolutely position canvas, hud and joystick via JS for perfect layout */
   .stage{position:relative;width:100%;height:100%}
   canvas{position:absolute;display:block;border-radius:18px;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 40px rgba(0,0,0,.5);background: radial-gradient(800px 500px at 50% -100px, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); touch-action:none}
   .hudBox{position:absolute;pointer-events:none}
   .score{position:absolute;left:14px;top:10px;font-weight:900;font-size: clamp(22px, 4.5vw, 36px);text-shadow:0 4px 16px rgba(0,0,0,.45)}
-  .best{position:absolute;left:14px;top:48px;font-weight:800;opacity:.9;font-size: clamp(12px, 2.6vw, 16px)}
+  .bank{position:absolute;left:14px;top:48px;font-weight:800;opacity:.95;font-size: clamp(14px, 3.2vw, 20px)}
   .modePill{position:absolute;right:12px;top:12px;font-weight:800;font-size: clamp(13px,2.6vw,18px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);padding:9px 12px;border-radius:999px;pointer-events:auto;user-select:none;touch-action:manipulation;display:flex;align-items:center;gap:8px;backdrop-filter: blur(4px)}
   .modePill:active{transform:scale(.98)}
   .event{position:absolute;left:50%;top:14%;transform:translateX(-50%);font-weight:900;font-size: clamp(20px,3.6vw,32px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
@@ -29,10 +28,15 @@
   .btn{pointer-events:auto;border:none;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;color:#071022;background:var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.45);font-size:16px}
   .btn.sec{background:#1c2546;color:var(--text);border:1px solid rgba(255,255,255,.12)}
   .select{appearance:none;background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 10px}
-  /* Joystick lives OUTSIDE the canvas; JS positions it. */
   .stick{position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none}
   .stick::after{content:"";position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
+  /* Right-thumb action button */
+  .action{position:absolute;width:118px;height:118px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter: blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:auto;touch-action:manipulation}
+  .action .big{font-size:36px}
+  .action .label{font-weight:900;font-size:16px}
+  .action .cost{font-weight:800;font-size:14px;color:var(--muted)}
+  .action.disabled{opacity:.45;filter:grayscale(0.2)}
   .shake{animation:shake .18s ease-in-out}
   @keyframes shake{0%{transform:translate3d(0,0,0)}25%{transform:translate3d(2px,0,0)}50%{transform:translate3d(-2px,0,0)}75%{transform:translate3d(2px,0,0)}100%{transform:translate3d(0,0,0)}}
 </style>
@@ -41,18 +45,18 @@
 <div class="wrap">
   <main>
     <div class="stage" id="stage">
-      <canvas id="cv" width="900" height="900" aria-label="Spelyta"></canvas>
+      <canvas id="cv" width="900" height="900"></canvas>
       <div class="hudBox" id="hudBox">
         <div class="score" id="scoreHUD">⭐ 0</div>
-        <div class="best" id="bestHUD">🏆 0</div>
+        <div class="bank" id="bankHUD">💰 0</div>
         <button class="modePill" id="modePill">⭐ Samla ⟳</button>
         <div class="event" id="eventHUD">KAOS!</div>
       </div>
 
       <div class="overlay" id="startOv">
         <div class="card">
-          <h1 class="title">Emoji Dodge v2.6</h1>
-          <p class="sub">Proffs-layout för mobil: joystick utanför spelytan, kvadratisk arena som maxar utrymmet i både stående & liggande.</p>
+          <h1 class="title">Emoji Dodge v2.7</h1>
+          <p class="sub">Nyhet: **Bombknapp** för högertummen – rensar skärmen. Kostar ⭐. Joystick ligger alltid utanför spelytan.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn" id="startBtn">▶ Starta</button>
             <select class="select" id="themeSel">
@@ -67,7 +71,7 @@
               <option value="dodge">🚫 Undvik</option>
             </select>
           </div>
-          <div class="sub" style="font-size:12px">Tips: Lägg till på hemskärmen i iOS för riktig helskärm.</div>
+          <div class="sub" style="font-size:12px">Tips: Samla ⭐ för att ladda bomben. iPhone: bäst helskärm via “Lägg till på hemskärmen”.</div>
         </div>
       </div>
 
@@ -83,84 +87,79 @@
       </div>
 
       <div class="stick" id="stick"></div>
+      <button class="action" id="actionBtn" aria-label="Bomb">
+        <div class="big">💣</div>
+        <div class="label">Bomb</div>
+        <div class="cost" id="costHUD">kostar ⭐5</div>
+      </button>
     </div>
   </main>
 </div>
 
 <script>
-// ===== Layout math =====
+// ===== Layout & safe areas =====
 const stage = document.getElementById('stage');
 const cv = document.getElementById('cv');
 const hudBox = document.getElementById('hudBox');
 const stick = document.getElementById('stick');
-
-function sa(name){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))||0; }
-function safeInsets(){
-  const div = document.createElement('div');
-  div.style.cssText="position:fixed;left:0;top:0;height:env(safe-area-inset-top);width:0;";
-  document.body.appendChild(div);
-  const top = div.getBoundingClientRect().height; div.remove();
-  // bottom/left/right approximations (iOS returns 0 for left/right sometimes; good enough for padding)
-  return {top, bottom: sa('env(safe-area-inset-bottom)'), left: sa('env(safe-area-inset-left)'), right: sa('env(safe-area-inset-right)')};
-}
+const actionBtn = document.getElementById('actionBtn');
+const costHUD = document.getElementById('costHUD');
 
 function layout(){
   const vw = window.visualViewport ? window.visualViewport.width : innerWidth;
   const vh = window.visualViewport ? window.visualViewport.height : innerHeight;
-  const s = safeInsets();
-  const pad = 12;
   const isLandscape = vw > vh;
-
-  // joystick size scales with shorter side
+  const pad = 12;
+  // joystick/action size from shorter side
   const joy = Math.round(Math.max(110, Math.min(140, Math.min(vw, vh)*0.18)));
   stick.style.width = stick.style.height = joy + 'px';
+  const act = Math.round(joy*0.95);
+  actionBtn.style.width = actionBtn.style.height = act + 'px';
 
-  let side;
+  let side, left, top;
   if(isLandscape){
-    // reserve left gutter for joystick
-    const gutter = joy + 24 + s.left;
-    side = Math.min(vh - (pad*2 + s.top + s.bottom), vw - (pad*2 + s.left + s.right) - gutter);
-    side = Math.max(300, Math.min(side, 1100));
-    const left = Math.round((vw - (side + gutter))/2 + gutter);
-    const top  = Math.round((vh - side)/2);
-    positionBox(cv, left, top, side, side);
-    // joystick left centered
+    const gutterL = joy + 24;
+    const gutterR = act + 24;
+    side = Math.min(vh - pad*2, vw - pad*2 - gutterL - gutterR);
+    side = Math.max(320, Math.min(side, 1100));
+    left = Math.round((vw - (side + gutterL + gutterR))/2 + gutterL);
+    top  = Math.round((vh - side)/2);
+    position(cv,left,top,side,side);
+    // left joystick center, right action center
     stick.style.left = Math.round(left - joy - 16) + 'px';
     stick.style.top  = Math.round(top + (side - joy)/2) + 'px';
+    actionBtn.style.left = Math.round(left + side + 16) + 'px';
+    actionBtn.style.top  = Math.round(top + (side - act)/2) + 'px';
   }else{
-    // portrait: reserve bottom gutter for joystick
-    const gutter = joy + 28 + s.bottom;
-    side = Math.min(vw - (pad*2 + s.left + s.right), vh - (pad*2 + s.top + s.bottom) - gutter);
-    side = Math.max(300, Math.min(side, 1100));
-    const left = Math.round((vw - side)/2);
-    const top  = Math.round((vh - (side + gutter))/2);
-    positionBox(cv, left, top, side, side);
-    // joystick centered under canvas
-    stick.style.left = Math.round(left + (side - joy)/2) + 'px';
-    stick.style.top  = Math.round(top + side + 12) + 'px';
+    // portrait: reserve bottom gutter for joystick/action side by side
+    side = Math.min(vw - pad*2, vh - pad*2 - (joy + 28));
+    side = Math.max(320, Math.min(side, 1100));
+    left = Math.round((vw - side)/2);
+    top  = Math.round((vh - (side + joy + 20))/2);
+    position(cv,left,top,side,side);
+    // joystick left under, action right under
+    const underY = Math.round(top + side + 8);
+    stick.style.left = Math.round(left + side*0.5 - joy - 10) + 'px';
+    stick.style.top  = underY + 'px';
+    actionBtn.style.left = Math.round(left + side*0.5 + 10) + 'px';
+    actionBtn.style.top  = underY + 'px';
   }
-  // HUD/Overlays match canvas rect
+  // HUD & overlays sized to canvas rect
   const r = cv.getBoundingClientRect();
-  positionBox(hudBox, r.left, r.top, r.width, r.height);
-  positionBox(document.getElementById('startOv'), r.left, r.top, r.width, r.height);
-  positionBox(document.getElementById('overOv'),  r.left, r.top, r.width, r.height);
+  positionBox('hudBox', r); positionBox('startOv', r); positionBox('overOv', r);
 }
 
-function positionBox(el, left, top, w, h){
-  el.style.left = left + 'px';
-  el.style.top  = top  + 'px';
-  el.style.width = w + 'px';
-  el.style.height= h + 'px';
-}
+function position(el,x,y,w,h){ el.style.left=x+'px'; el.style.top=y+'px'; el.style.width=w+'px'; el.style.height=h+'px'; }
+function positionBox(id, r){ const el=document.getElementById(id); el.style.left=r.left+'px'; el.style.top=r.top+'px'; el.style.width=r.width+'px'; el.style.height=r.height+'px'; }
 
-addEventListener('resize', layout);
-if (window.visualViewport) visualViewport.addEventListener('resize', layout);
+addEventListener('resize',layout);
+if (window.visualViewport) visualViewport.addEventListener('resize',layout);
 layout();
 
 // ===== HUD & State =====
 const HUD = {
   score: document.getElementById('scoreHUD'),
-  best: document.getElementById('bestHUD'),
+  bank: document.getElementById('bankHUD'),
   event: document.getElementById('eventHUD'),
   start: document.getElementById('startOv'),
   over: document.getElementById('overOv'),
@@ -171,9 +170,8 @@ const HUD = {
   modePill: document.getElementById('modePill')
 };
 
-const STORAGE_KEY='emoji_dodge_v26_best';
+const STORAGE_KEY='emoji_dodge_v27_best';
 let best = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
-HUD.best.textContent = '🏆 '+best;
 
 // Themes
 const THEMES={
@@ -201,10 +199,15 @@ function wallBump(){ tone(280,0.03,'square',0.02); vibrate(8); }
 let running=false, mode='collect', theme='default';
 let t=0,last=0,dt=0,score=0,gravity=1,warp=1;
 let hazards=[],goods=[],particles=[];
-let autoEventTimer=0, fx={blur:0,blackout:0};
+let autoEventTimer=0;
+const fx={blur:0,blackout:0};
 const player={x:cv.width/2,y:cv.height*0.78,r:26,spd:370,emoji:'😎',evo:0};
 
-// Playfield clamp
+// Currency & power
+let bank=0, bombCooldown=0;
+const BOMB_COST=5, BOMB_COOLDOWN_S=3;
+
+// Clamp
 const playfieldMargin = 24;
 function clampPlayer(){
   const minX = playfieldMargin + player.r;
@@ -220,8 +223,8 @@ function clampPlayer(){
 }
 
 // Input
-const keys={ArrowUp:0,ArrowDown:0,ArrowLeft:0,ArrowRight:0,KeyW:0,KeyA:0,KeyS:0,KeyD:0,KeyM:0};
-addEventListener('keydown',e=>{ if(e.code in keys) keys[e.code]=1; if(e.code==='KeyM') muted=!muted; });
+const keys={ArrowUp:0,ArrowDown:0,ArrowLeft:0,ArrowRight:0,KeyW:0,KeyA:0,KeyS:0,KeyD:0,KeyM:0,Space:0};
+addEventListener('keydown',e=>{ if(e.code in keys) keys[e.code]=1; if(e.code==='KeyM') muted=!muted; if(e.code==='Space') tryBomb(); });
 addEventListener('keyup',e=>{ if(e.code in keys) keys[e.code]=0; });
 
 // Mode pill
@@ -237,13 +240,16 @@ document.getElementById('retryBtn').addEventListener('click', (e)=>{ e.preventDe
 document.getElementById('menuBtn').addEventListener('click', (e)=>{ e.preventDefault(); HUD.over.classList.remove('show'); HUD.start.classList.add('show'); }, {passive:false});
 cv.addEventListener('click', ()=>{ if(!running){ ensureAudio(); setOptionsFromMenu(); start(); } }, {passive:true});
 
+// Action button
+actionBtn.addEventListener('click', (e)=>{ e.preventDefault(); tryBomb(); }, {passive:false});
+
 function setOptionsFromMenu(){
   theme = HUD.themeSel.value;
-  mode  = document.getElementById('modeSelStart').value;
+  mode  = HUD.modeSelStart.value;
   HUD.modePill.textContent = (mode==='collect') ? '⭐ Samla ⟳' : '🚫 Undvik ⟳';
 }
 
-// Mobile joystick (outside canvas)
+// Joystick
 let stickActive=false, stickStart=null, stickVec={x:0,y:0};
 ['touchstart','touchmove','touchend','touchcancel'].forEach(tp=>stick.addEventListener(tp,ev=>{
   if(tp==='touchstart'){ stickActive=true; const r=stick.getBoundingClientRect(); const t=ev.touches[0]; stickStart={x:t.clientX-(r.left+r.width/2), y:t.clientY-(r.top+r.height/2)}; stickVec={x:0,y:0}; }
@@ -252,16 +258,14 @@ let stickActive=false, stickStart=null, stickVec={x:0,y:0};
   ev.preventDefault();
 },{passive:false}));
 
-// Start overlay visible initially
-HUD.start.classList.add('show');
-
 // Core
 function start(){
   hazards.length=0; goods.length=0; particles.length=0;
-  score=0; t=0; gravity=1; warp=1; fx.blur=0; fx.blackout=0;
+  score=0; bank=0; t=0; gravity=1; warp=1; fx.blur=0; fx.blackout=0; bombCooldown=0;
   player.x=cv.width/2; player.y=cv.height*0.78; player.evo=0; player.emoji='😎';
   running=true; last=0;
   HUD.start.classList.remove('show'); HUD.over.classList.remove('show');
+  updateBankHUD(); updateActionState();
   requestAnimationFrame(loop);
 }
 
@@ -289,10 +293,10 @@ function triggerEvent(type){
   stinger();
   if(type==='flip'){ gravity*=-1; toast('🌀 Gravity Flip'); }
   if(type==='big'){ hazards.forEach(h=>h.r*=1.7); toast('🧠 Everything Big'); }
-  if(type==='blur'){ fx.blur=5; toast('🌫️ Blur Mode'); setTimeout(()=>fx.blur=0, 4500); }
+  if(type==='blur'){ toast('🌫️ Blur Mode'); setTimeout(()=>{}, 0); }
   if(type==='banana'){ for(let i=0;i<14;i++) hazards.push({x:Math.random()*(cv.width-2*playfieldMargin)+playfieldMargin,y:-40,r:22+Math.random()*10,vy:200+Math.random()*180,vx:(Math.random()-0.5)*40,rot:0,spin:(Math.random()-0.5)*2,emoji:'🍌'}); toast('🍌 Banana Rain'); }
   if(type==='warp'){ warp = (warp===1?1.55:1); toast(warp>1?'⏱️ Speed Up':'⏱️ Normal'); }
-  if(type==='blackout'){ fx.blackout=1; toast('🌑 Blackout'); setTimeout(()=>fx.blackout=0, 5500); }
+  if(type==='blackout'){ toast('🌑 Blackout'); }
 }
 function autoEvents(dt){ autoEventTimer+=dt; if(autoEventTimer>=28){ autoEventTimer=0; const arr=['flip','big','blur','banana','warp','blackout']; triggerEvent(arr[Math.floor(Math.random()*arr.length)]); } }
 function evolve(elapsed){ const st=Math.floor(elapsed/24); if(st!==player.evo){ player.evo=st; player.emoji = st>=3?'🦄':st==2?'🤖':'🤠'; toast('⭐ Evolverad!'); } }
@@ -301,6 +305,8 @@ function loop(now){
   if(!running) return;
   requestAnimationFrame(loop);
   if(!last) last=now; dt=((now-last)/1000)*warp; last=now;
+
+  if(bombCooldown>0){ bombCooldown=Math.max(0, bombCooldown-dt); if(bombCooldown===0) updateActionState(); }
 
   autoEvents(dt);
   evolve(score/4);
@@ -320,7 +326,6 @@ function loop(now){
   player.x += (ix/mag)*player.spd*dt;
   player.y += (iy/mag)*player.spd*dt;
   player.y += 100*gravity*dt;
-
   clampPlayer();
 
   // hazards
@@ -341,7 +346,10 @@ function loop(now){
     for(let i=goods.length-1;i>=0;i--){
       const g=goods[i];
       g.y += g.vy*dt*gravity; g.pulse+=dt*3;
-      if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){ score+=25; bling(); addParticles(g.x,g.y,20,'#ffd166'); goods.splice(i,1); continue; }
+      if((player.x-g.x)**2+(player.y-g.y)**2 <= (player.r+g.r)**2){
+        score+=25; bank+=1; bling(); updateBankHUD(); updateActionState();
+        addParticles(g.x,g.y,20,'#ffd166'); goods.splice(i,1); continue;
+      }
       if((gravity>0 && g.y-g.r>cv.height+40) || (gravity<0 && g.y+g.r<-40)) goods.splice(i,1);
     }
   }
@@ -389,7 +397,6 @@ function draw(){
   drawEmoji(player.emoji, player.x, player.y, player.r*2, 0, '#f1f5ff');
 }
 
-function addParticles(x,y,n=14,color='#fff'){ for(let i=0;i<n;i++){ particles.push({x,y,vx:(Math.random()-0.5)*230,vy:(Math.random()-0.5)*230,life:0.7+Math.random()*0.5,color}); } }
 function drawEmoji(e,x,y,size,rot,glow){
   const ctx=cv.getContext('2d');
   ctx.save();
@@ -399,6 +406,40 @@ function drawEmoji(e,x,y,size,rot,glow){
   ctx.fillText(e,0,0);
   ctx.restore();
 }
+
+// ===== Bomb Power =====
+function tryBomb(){
+  if(!running) return;
+  if(bombCooldown>0 || bank < BOMB_COST) { shakeFallback(); return; }
+  bank -= BOMB_COST; updateBankHUD(); updateActionState();
+  // clear hazards with VFX & points
+  let cleared=0;
+  hazards.forEach(h=>{ addParticles(h.x,h.y,24,'#ffb3b3'); });
+  cleared = hazards.length;
+  hazards.length=0;
+  tone(80,0.25,'sawtooth',0.08); tone(120,0.2,'sawtooth',0.06); vibrate([40,60,40]);
+  toast('💣 Mega Bomb!');
+  score += cleared * 10;
+  bombCooldown = BOMB_COOLDOWN_S;
+  updateActionState();
+}
+
+function updateBankHUD(){ HUD.bank.textContent = '💰 '+bank; }
+function updateActionState(){
+  const ready = bank >= BOMB_COST && bombCooldown===0;
+  actionBtn.classList.toggle('disabled', !ready);
+  if(bombCooldown>0){
+    costHUD.textContent = 'cooldown ' + Math.ceil(bombCooldown)+'s';
+  } else {
+    costHUD.textContent = 'kostar ⭐'+BOMB_COST;
+  }
+}
+
+// ===== Start state =====
+HUD.start.classList.add('show');
+HUD.bank.textContent = '💰 0';
+HUD.score.textContent = '⭐ 0';
+layout();
 </script>
 </body>
 </html>
