@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Emoji Dodge – v3.6.0</title>
+<title>Emoji Dodge – v3.6.1</title>
 <meta name="theme-color" content="#0b0f1a" />
 <style>
   :root{
@@ -25,6 +25,7 @@
   .bank{position:absolute;right:14px;top:10px;font-weight:800;opacity:.95;font-size: clamp(14px, 3.2vw, 20px)}
   .leftHUD{position:absolute;left:14px;top:10px;font-weight:800;opacity:.95;font-size: clamp(14px, 3.2vw, 20px);display:flex;align-items:center;gap:6px}
   .modeIcon{font-size: clamp(20px, 4.2vw, 28px)}
+  .coinIcon{width:1.5em;height:1.5em;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
   .morphBadge{position:absolute;left:50%;top:48px;transform:translateX(-50%);font-weight:900;background:var(--glass);border:1px solid var(--glassBorder);padding:6px 10px;border-radius:999px;display:none}
   .morphBadge.show{display:block}
   .event{position:absolute;left:50%;top:18%;transform:translateX(-50%);font-weight:900;font-size: clamp(20px,3.6vw,32px);text-shadow:0 6px 30px rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
@@ -43,15 +44,16 @@
   /* Mobile control bar — refined */
   .controls{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;height:128px;padding:0 8px 4px}
   .controls .left, .controls .right{display:flex;align-items:end;gap:12px}
-  .stick{width:112px;height:112px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none;opacity:.7;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-  .stick::after{content:"";position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.28)}
+  .stick{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:none;pointer-events:auto;touch-action:none;opacity:.75;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+  .stick::after{content:"";position:absolute;left:50%;top:50%;width:46px;height:46px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.28)}
   @media (hover:none) and (pointer:coarse){ .stick{display:block} }
-  .action{width:112px;height:112px;border-radius:26px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:manipulation; box-shadow:0 10px 24px rgba(0,0,0,.35); transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease;}
+  .action{width:112px;height:112px;border-radius:26px;background:var(--glass);border:1px solid var(--glassBorder);backdrop-filter: blur(6px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:manipulation; box-shadow:0 10px 24px rgba(0,0,0,.35); transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease; margin-left:auto}
   .action .big{font-size:36px}
   .action:active{ transform: translateY(1px) scale(.99) }
   .action.ready{ border-color: rgba(255, 209, 102, 0.9); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5); animation: pulseGlow 1.2s ease-out infinite; }
   @keyframes pulseGlow{ 0%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55), 0 12px 40px rgba(0,0,0,.5);} 70%{ box-shadow: 0 0 0 16px rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5);} 100%{ box-shadow: 0 0 0 0 rgba(255, 209, 102, 0), 0 12px 40px rgba(0,0,0,.5);} }
-  .mute{border:none;border-radius:999px;padding:10px 12px;background:var(--glass);border:1px solid var(--glassBorder);color:var(--text);font-weight:800;pointer-events:auto; width:48px; height:48px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,.3)}
+  /* Floating mute in top-right (inside hud) */
+  .muteTop{position:absolute; right:10px; top:10px; width:44px; height:44px; pointer-events:auto; border:none;border-radius:999px;padding:0;background:var(--glass);border:1px solid var(--glassBorder);color:var(--text);font-weight:800; display:flex; align-items:center; justify-content:center; z-index:3}
   body.ui-locked .controls{ opacity:0; pointer-events:none; }
   /* Desktop: hide mobile controls, larger canvas */
   @media (hover:hover) and (pointer:fine){ .controls{display:none} }
@@ -70,7 +72,11 @@
     <div class="stage" id="stage">
       <canvas id="cv" width="1024" height="1024"></canvas>
       <div class="hudBox" id="hudBox">
-        <div class="leftHUD"><span class="modeIcon" id="modeIcon">⭐</span><span id="leftCount">—</span></div>
+        <div class="leftHUD">
+          <img id="coinHUDIcon" class="coinIcon" alt="coin" />
+          <span id="leftCount">0</span>
+        </div>
+        <button class="muteTop" id="muteBtnTop" aria-label="Sound">🔊</button>
         <div class="score" id="scoreHUD">0</div>
         <div class="bank" id="bankHUD">—</div>
         <div class="morphBadge" id="morphBadge">🦄 Unicorn active</div>
@@ -80,7 +86,7 @@
       <div class="intro" id="introOv">
         <div class="card">
           <div class="logo">EMOJI DODGE</div>
-          <div class="alpha">ALPHA BUILD v0.6 – In development</div>
+          <div class="alpha">ALPHA BUILD v3.6.1 – In development</div>
           <div class="hint">Tap to skip</div>
         </div>
       </div>
@@ -94,7 +100,6 @@
           </div>
           <div class="row">
             <button class="btn" id="startBtn">▶ Start</button>
-            <button class="btn sec" id="muteBtnMenu">🔊 Sound</button>
           </div>
           <div class="alpha" style="margin-top:14px">Test build – feedback welcome!</div>
         </div>
@@ -119,7 +124,6 @@
       </div>
       <div class="right">
         <button class="action" id="actionBtn" aria-label="Action"><div class="big" id="actionIcon">💣</div></button>
-        <button class="mute" id="muteBtn">🔊</button>
       </div>
     </div>
     <audio id="bgMusic" src="soundtrack.mp3" preload="auto" loop></audio>
@@ -127,7 +131,7 @@
 </div>
 
 <script>
-// ===== Helpers & SFX Pool
+// ===== Helpers & SFX
 const images={};
 function loadImage(key, src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>{images[key]=im; res(true)}; im.onerror=()=>res(false); im.src=src; }); }
 function vibrate(p){ if(navigator.vibrate) navigator.vibrate(p); }
@@ -136,6 +140,7 @@ function ensureAudio(){ if(!actx){ actx=new AC(); } if(actx.state==='suspended')
 function tone(f=900,d=0.07,t='triangle',v=0.035){ if(muted||!actx) return; const o=actx.createOscillator(), g=actx.createGain(); o.type=t;o.frequency.value=f; g.gain.value=v; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+d); }
 function pingReady(){ tone(1100,0.09,'triangle',0.06); vibrate([10,40,10]); }
 
+// audio pool for voices
 const SFX_POOL = { pool:{}, last:{}, minGap:{
   'assets/to_the_moon.mp3':200,
   'assets/hodl.mp3':200,
@@ -161,12 +166,11 @@ function playRocketWhoosh(){ playSfx('assets/rocket_whoosh.mp3',0.9); }
 // ===== Layout
 const stage=document.getElementById('stage'), cv=document.getElementById('cv'), hudBox=document.getElementById('hudBox');
 const stick=document.getElementById('stick'), actionBtn=document.getElementById('actionBtn'), actionIcon=document.getElementById('actionIcon');
-const muteBtn=document.getElementById('muteBtn');
-const modeIcon=document.getElementById('modeIcon');
+const muteBtnTop=document.getElementById('muteBtnTop');
+const coinHUDIcon=document.getElementById('coinHUDIcon');
 const leftCount=document.getElementById('leftCount');
 const introOv=document.getElementById('introOv');
 const startOv=document.getElementById('startOv');
-const muteBtnMenu=document.getElementById('muteBtnMenu');
 const btnClassic=document.getElementById('btnClassic'), btnDoge=document.getElementById('btnDoge');
 const startBtn=document.getElementById('startBtn');
 
@@ -193,14 +197,13 @@ addEventListener('resize',layout); if (window.visualViewport) visualViewport.add
 
 // ===== HUD & State
 const HUD={ score:scoreHUD, bank:bankHUD, event:eventHUD, start:startOv, over:overOv, finalScore:finalScore, finalBest:finalBest };
-const STORAGE_KEY='emoji_dodge_v360_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
+const STORAGE_KEY='emoji_dodge_v361_best'; let best=parseInt(localStorage.getItem(STORAGE_KEY)||'0',10);
 
 const THEMES={ classicHaz:['💣','🔥','⚡','🧨','🧊','🌩️','😈','👾','☄️','🌀','🗡️'], fun:['👻','💀','🕷️','🕸️','🍔','🍕','🌮','🍟','🏀','🎯','🎱'] };
 
 const music=bgMusic;
 function tryPlayMusic(){ if(muted) return; music.volume=0.7; music.play().catch(()=>{}); }
-muteBtn.addEventListener('click', ()=>{ muted=!muted; muteBtn.textContent=muted?'🔇':'🔊'; if(muted){ music.pause(); } else tryPlayMusic(); }, {passive:true});
-muteBtnMenu.addEventListener('click', ()=>{ muted=!muted; muteBtnMenu.textContent=muted?'🔇 Sound':'🔊 Sound'; if(muted){ music.pause(); } }, {passive:true});
+muteBtnTop.addEventListener('click', ()=>{ muted=!muted; muteBtnTop.textContent=muted?'🔇':'🔊'; if(muted){ music.pause(); } else tryPlayMusic(); }, {passive:true});
 
 // Game state
 let running=false, themeSel=null;
@@ -216,7 +219,6 @@ const playfieldMargin=24;
 // Background/parallax settings
 const prefersReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let parallaxOnDesktop = !prefersReduce;
-let bgPulse = 0;
 
 // Counters
 let coinTotal=0; // Doge World coins
@@ -237,7 +239,7 @@ menuBtn.addEventListener('click', e=>{ e.preventDefault(); HUD.over.classList.re
 function showIntro(){
   lockUI();
   introOv.classList.add('show');
-  setTimeout(()=>{ if(introOv.classList.contains('show')) { introOv.classList.remove('show'); startMenu(); } }, 1400);
+  setTimeout(()=>{ if(introOv.classList.contains('show')) { introOv.classList.remove('show'); startMenu(); } }, 1200);
 }
 introOv.addEventListener('click', ()=>{ introOv.classList.remove('show'); startMenu(); }, {passive:true});
 
@@ -250,20 +252,24 @@ function selectMode(m){
   btnDoge.dataset.active = (m==='doge');
   btnClassic.classList.toggle('sec', !(m==='classic'));
   btnDoge.classList.toggle('sec', !(m==='doge'));
-  startBtn.disabled=false; startBtn.style.opacity='1';
 }
 startBtn.addEventListener('click', async e=>{ e.preventDefault(); if(!themeSel) themeSel='classic'; ensureAudio(); await preloadAssets(); start(); }, {passive:false});
 
 function startMenu(){
-  // default to Classic selected so Start is enabled
-  selectMode('classic');
+  selectMode('classic'); // default so Start works instantly
   lockUI();
   HUD.start.classList.add('show'); layout();
 }
 
 function setLeftHUD(){
-  if(themeSel==='doge'){ modeIcon.textContent='🪙'; leftCount.textContent = String(coinTotal); }
-  else { modeIcon.textContent='⭐'; leftCount.textContent = ''; }
+  if(themeSel==='doge'){
+    coinHUDIcon.src = 'assets/dogecoin.png';
+    coinHUDIcon.style.display='inline-block';
+    leftCount.textContent = String(coinTotal);
+  } else {
+    coinHUDIcon.src=''; coinHUDIcon.style.display='none';
+    leftCount.textContent = ''; // classic shows nothing on left
+  }
 }
 function setModeIcon(){
   setLeftHUD();
@@ -281,7 +287,7 @@ let stickActive=false, stickStart=null, stickVec={x:0,y:0};
 ['touchstart','touchmove','touchend','touchcancel'].forEach(tp=>stick.addEventListener(tp,ev=>{
   if(tp==='touchstart'){ stickActive=true; const r=stick.getBoundingClientRect(); const t=ev.touches[0]; stickStart={x:t.clientX-(r.left+r.width/2), y:t.clientY-(r.top+r.height/2)}; stick.style.opacity=0.9; }
   else if(tp==='touchmove'){ const r=stick.getBoundingClientRect(); const t=ev.touches[0]; const dx=t.clientX-(r.left+r.width/2)-stickStart.x; const dy=t.clientY-(r.top+r.height/2)-stickStart.y; const m=Math.hypot(dx,dy); const lim=r.width*0.46; const cl=Math.min(lim,m); const nx=m?dx/m:0, ny=m?dy/m:0; stickVec={x:(cl/lim)*nx,y:(cl/lim)*ny}; }
-  else { stickActive=false; stickVec={x:0,y:0}; stick.style.opacity=0.7; }
+  else { stickActive=false; stickVec={x:0,y:0}; stick.style.opacity=0.75; }
   ev.preventDefault();
 },{passive:false}));
 
@@ -342,7 +348,7 @@ function loop(now){
   if(!running) return; requestAnimationFrame(loop);
   if(!last) last=now; dt=(now-last)/1000; last=now;
 
-  // timers (doge flight/shield)
+  // Doge flight/shield timers
   if(themeSel==='doge'){
     const topStop=24+80+player.r;
     if(rocketActive>0){
@@ -357,7 +363,7 @@ function loop(now){
     if(spawnGrace>0) spawnGrace=Math.max(0, spawnGrace-dt);
   }
 
-  // pacing
+  // spawn pacing
   let hazardInt=Math.max(0.22, 0.85 - score*0.0022);
   if(spawnGrace>0) hazardInt*=1.7;
   const starInt=Math.max(0.68, 1.45 - score*0.0015);
@@ -372,7 +378,7 @@ function loop(now){
     if(themeSel==='doge' && Math.random()<0.55) spawnRocket();
   }
 
-  // input (normal)
+  // input normal
   if(rocketActive<=0){
     let ix=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0);
     let iy=(keys.ArrowDown||keys.KeyS?1:0)-(keys.ArrowUp||keys.KeyW?1:0);
@@ -444,7 +450,7 @@ function loop(now){
     if(m.y-m.r>cv.height+40) rockets.splice(i,1);
   }
 
-  // unicorn passive (classic)
+  // unicorn passive
   if(themeSel==='classic' && morph==='unicorn'){
     unicornTimer -= dt;
     if(unicornTimer<=0){
@@ -454,7 +460,7 @@ function loop(now){
     }
   }
 
-  // update sweeps + clear hazards
+  // sweeps clear
   for(let i=sweeps.length-1;i>=0;i--){
     const s=sweeps[i]; s.t+=dt; s.x += s.speed*dt; if(s.x>cv.width+200 || s.t>s.life){ sweeps.splice(i,1); continue; }
     for(let j=hazards.length-1;j>=0;j--){
@@ -465,10 +471,10 @@ function loop(now){
     }
   }
 
-  // particles
+  // particles decay
   for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; } p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=380*dt; }
 
-  // Ready pulse guard
+  // ready pulse guard
   const readyClassic = themeSel==='classic' && bombArmed;
   const readyDoge = themeSel==='doge' && rocketArmed;
   if(readyClassic && !lastReadyClassic){ pingReady(); } 
@@ -476,7 +482,7 @@ function loop(now){
   lastReadyClassic = readyClassic; lastReadyDoge = readyDoge;
 
   score += dt*4;
-  scoreHUD.textContent=''+Math.floor(score);
+  HUD.score.textContent=''+Math.floor(score);
   draw();
 }
 
@@ -484,9 +490,9 @@ function loop(now){
 function draw(){
   const ctx=cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
 
-  // --- DOGE BACKGROUND (mobile: still + low alpha, desktop: light parallax)
+  // DOGE background (subtle)
   const isDesktop = matchMedia('(hover:hover) and (pointer:fine)').matches;
-  const parallax = isDesktop && parallaxOnDesktop;
+  const parallax = isDesktop && !matchMedia('(prefers-reduced-motion: reduce)').matches;
   const alpha = themeSel==='doge' ? 0.12 : 0.06;
   ctx.save(); ctx.globalAlpha = alpha;
   if(images['doge']){
@@ -498,27 +504,26 @@ function draw(){
     }
     ctx.drawImage(images['doge'], cv.width/2 - s/2 + offsetX, cv.height/2 - s/2 + offsetY, s, s);
   }else{
-    // fallback emoji watermark
     ctx.font = `${Math.floor(cv.width*0.7)}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
     const mark = themeSel==='doge' ? '🐶' : '⭐'; ctx.fillText(mark, cv.width/2, cv.height/2);
   }
   ctx.restore();
 
-  // grid (very subtle)
+  // subtle grid
   ctx.save(); ctx.globalAlpha=0.05; ctx.strokeStyle='#cbd5ff';
   const grid=90; ctx.beginPath();
   for(let gx=24;gx<cv.width-24;gx+=grid){ ctx.moveTo(gx,24); ctx.lineTo(gx,cv.height-24); }
   for(let gy=24;gy<cv.height-24;gy+=grid){ ctx.moveTo(24,gy); ctx.lineTo(cv.width-24,gy); }
   ctx.stroke(); ctx.restore();
 
-  // shield/invul
+  // shield / invul
   if(shield>0){ const a=Math.max(0.15, 0.25*Math.sin(Date.now()/180)+0.3); ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle='#ffd166'; ctx.lineWidth=12; ctx.beginPath(); ctx.arc(player.x,player.y, player.r+18, 0, Math.PI*2); ctx.stroke(); ctx.restore(); }
   if(invul>0){ ctx.save(); ctx.globalAlpha=0.22; ctx.strokeStyle='#8dfcff'; ctx.lineWidth=6; ctx.beginPath(); ctx.arc(player.x,player.y, player.r+28, 0, Math.PI*2); ctx.stroke(); ctx.restore(); }
 
   // particles
   particles.forEach(p=>{ ctx.save(); ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill(); ctx.restore(); });
 
-  // sweeps (rainbow)
+  // sweeps
   sweeps.forEach(s=>{
     const g=ctx.createLinearGradient(s.x-s.w/2, s.y, s.x+s.w/2, s.y);
     g.addColorStop(0,'#ff2d55'); g.addColorStop(0.2,'#ffcc00'); g.addColorStop(0.4,'#34c759'); g.addColorStop(0.6,'#5ac8fa'); g.addColorStop(0.8,'#5856d6'); g.addColorStop(1,'#ff2d55');
